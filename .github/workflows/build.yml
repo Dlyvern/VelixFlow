@@ -1,0 +1,144 @@
+name: Build ElixirCore
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Install Git LFS
+        run: |
+            sudo apt-get update
+            sudo apt-get install -y git-lfs
+            git lfs install
+
+      - name: Checkout Code with LFS
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Install Dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y cmake build-essential libgl1-mesa-dev
+          
+      - name: Restore CMake + FetchContent Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache
+            build
+          key: cmake-linux-${{ hashFiles('**/CMakeLists.txt') }}
+          restore-keys: |
+            cmake-linux-
+
+      - name: Configure and Build
+        run: |
+          cmake -S . -B build -G Ninja -DPHYSX_BUILD_TYPE=checked
+          cmake --build build --config Debug
+      - name: Install to Staging Dir
+        run: |
+          cmake --install build --prefix staging
+
+      - name: Create Archive
+        run: |
+          tar -czvf ElixirCore-linux.tar.gz -C staging .
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ElixirCore-linux
+          path: ElixirCore-linux.tar.gz
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Install Git LFS
+        run: git lfs install
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Setup MSVC Developer Environment
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Restore CMake + FetchContent Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache
+            build
+          key: cmake-linux-${{ hashFiles('**/CMakeLists.txt') }}
+          restore-keys: |
+            cmake-linux-
+
+      - name: Configure and Build
+        run: |
+          cmake -S . -B build -G Ninja -DELIXIR_USE_PHYSX=OFF -DPHYSX_BUILD_TYPE=checked
+          cmake --build build --config Debug
+
+      - name: Install to Staging Dir
+        run: |
+          cmake --install build --prefix staging
+
+      - name: Create Archive
+        run: |
+          tar -czvf ElixirCore-windows.tar.gz -C staging .
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ElixirCore-windows
+          path: ElixirCore-windows.tar.gz
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - name: Install Git LFS
+        run: |
+          brew install git-lfs
+          git lfs install
+
+      - name: Checkout Code with LFS
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Install Dependencies
+        run: |
+          brew install cmake ninja
+
+      - name: Restore CMake + FetchContent Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache
+            build
+          key: cmake-linux-${{ hashFiles('**/CMakeLists.txt') }}
+          restore-keys: |
+            cmake-linux-
+
+      - name: Configure and Build
+        run: |
+          cmake -S . -B build -G Ninja -DPHYSX_BUILD_TYPE=checked
+          cmake --build build --config Debug
+
+      - name: Install to Staging Dir
+        run: |
+          cmake --install build --prefix staging
+
+      - name: Create Archive
+        run: |
+          tar -czvf ElixirCore-macos.tar.gz -C staging .
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ElixirCore-macos
+          path: ElixirCore-macos.tar.gz

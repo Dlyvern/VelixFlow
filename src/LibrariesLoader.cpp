@@ -1,0 +1,59 @@
+#include "LibrariesLoader.hpp"
+
+#ifdef _WIN32
+    #include <windows.h>
+#else
+    #include <dlfcn.h>
+#endif
+
+#include <iostream>
+
+void* elix::LibrariesLoader::loadLibrary(const std::string &libraryPath)
+{
+#ifdef _WIN32
+    HMODULE lib = LoadLibrary(libraryPath.c_str());
+
+    if (!lib)
+        std::cerr << "LibrariesLoader::loadLibrary(): Failed to load library "<< libraryPath << std::endl;
+
+    return lib;
+#else
+
+    void* handle = dlopen(libraryPath.c_str(), RTLD_LAZY);
+
+    if (!handle)
+        std::cerr << "LibrariesLoader::loadLibrary(): Failed to load library "<< libraryPath << " " << dlerror() << std::endl;
+
+    return handle;
+#endif
+}
+
+void* elix::LibrariesLoader::getFunction(const std::string &functionName, void *library)
+{
+#ifdef _WIN32
+    void* function = GetProcAddress(library, functionName.c_str());
+
+    if (!function)
+        std::cerr << "LibrariesLoader::getFunction(): Failed to get function " << functionName << std::endl;
+
+    return function;
+#else
+
+    void* function = dlsym(library, functionName.c_str());
+
+    if (!function)
+        std::cerr << "LibrariesLoader::getFunction(): Failed to get function " << functionName << " " << dlerror() << std::endl;
+
+    return function;
+
+#endif
+}
+
+void elix::LibrariesLoader::closeLibrary(void *library)
+{
+#ifdef _WIN32
+    FreeLibrary(library);
+#else
+    dlclose(library);
+#endif
+}
