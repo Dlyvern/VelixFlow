@@ -209,7 +209,7 @@ add_library(zlib_shared SHARED IMPORTED)
 
 set_target_properties(zlib_shared PROPERTIES
         IMPORTED_IMPLIB "${LIBZ_ROOT}/lib/windows/zlib1.lib"
-        IMPORTED_LOCATION "${LIBZ_ROOT}/bin/windows/zlib1.dll"
+        IMPORTED_LOCATION "${LIBZ_ROOT}/lib/windows/zlib1.dll"
 )
 endif ()
 
@@ -351,6 +351,8 @@ if(ELIXIR_PLATFORM_WINDOWS AND EXISTS "${LIBZ_ROOT}/lib/windows/zlib1.dll")
             $<TARGET_FILE_DIR:${PROJECT_NAME}>
     )
 
+    message(STATUS "Found zlib dll at: ${LIBZ_ROOT}/lib/windows/zlib1.dll")
+
 elseif (ELIXIR_PLATFORM_WINDOWS AND NOT EXISTS "${LIBZ_ROOT}/lib/windows/zlib1.dll")
     message(STATUS "Failed to look for zlib DLL at: ${LIBZ_ROOT}/lib/windows/zlib1.dll. Skipping copy")
 endif()
@@ -373,7 +375,7 @@ install(TARGETS ElixirCore
 
 if(ELIXIR_PLATFORM_WINDOWS)
     install(FILES
-        ${GLFW_ROOT}/lib/windows/glfw3.lib
+        ${GLFW_ROOT}/lib/windows/glfw3.libs
         ${LIBZ_ROOT}/lib/windows/zlib1.lib
         ${ASSIMP_ROOT}/lib/assimp.lib
         ${FREETYPE_ROOT}/lib/freetype.lib
@@ -388,7 +390,7 @@ if(ELIXIR_PLATFORM_WINDOWS)
     )
 
     install(FILES
-            ${LIBZ_ROOT}/bin/windows/zlib1.dll
+            ${LIBZ_ROOT}/lib/windows/zlib1.dll
             DESTINATION bin
     )
 
