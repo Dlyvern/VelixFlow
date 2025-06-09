@@ -349,14 +349,15 @@ if(ELIXIR_PLATFORM_WINDOWS)
 message(STATUS "LIBZ_ROOT: ${LIBZ_ROOT}")
 message(STATUS "Looking for zlib DLL at: ${LIBZ_ROOT}/bin/windows/zlib1.dll")
 
-if(EXISTS "${LIBZ_ROOT}/bin/windows/zlib1.dll")
-    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${LIBZ_ROOT}/bin/windows/zlib1.dll"
-            $<TARGET_FILE_DIR:${PROJECT_NAME}>
-    )
-else()
-    message(WARNING "zlib1.dll not found, skipping copy")
+    if(EXISTS "${LIBZ_ROOT}/bin/windows/zlib1.dll")
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${LIBZ_ROOT}/bin/windows/zlib1.dll"
+                $<TARGET_FILE_DIR:${PROJECT_NAME}>
+        )
+    else()
+        message(WARNING "zlib1.dll not found, skipping copy")
+    endif()
 endif()
 
 install(TARGETS glad
