@@ -4,9 +4,11 @@
 #include <string>
 
 #ifdef _WIN32
+    #include <windows.h>
     using LibraryHandle = HMODULE;
 #else
-using LibraryHandle = void*;
+    #include <dlfcn.h>
+    using LibraryHandle = void*;
 #endif
 
 namespace elix::LibrariesLoader
@@ -24,3 +26,5 @@ namespace elix::LibrariesLoader
 } //namespace LibrariesLoader
 
 #endif //SCRIPTS_LOADER_HPP
+
+

@@ -16,29 +16,29 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt update
-          sudo apt install -y cmake build-essential libgl1-mesa-dev
-          
-      - name: Restore CMake + FetchContent Cache
+          sudo apt install -y cmake build-essential libgl1-mesa-dev ninja-build
+
+      - name: Restore FetchContent Cache
         uses: actions/cache@v4
         with:
-          path: |
-            ~/.cache
-            build
-          key: cmake-linux-${{ hashFiles('**/CMakeLists.txt') }}
+          path: ~/.cache
+          key: fetchcontent-linux-${{ hashFiles('**/CMakeLists.txt') }}
           restore-keys: |
-            cmake-linux-
+            fetchcontent-linux-
+
+      - name: Clean Previous Build
+        run: rm -rf build
 
       - name: Configure and Build
         run: |
           cmake -S . -B build -G Ninja -DELIXIR_USE_PHYSX=OFF -DPHYSX_BUILD_TYPE=checked
           cmake --build build --config Debug
+
       - name: Install to Staging Dir
-        run: |
-          cmake --install build --prefix staging
+        run: cmake --install build --prefix staging
 
       - name: Create Archive
-        run: |
-          tar -czvf ElixirCore-linux.tar.gz -C staging .
+        run: tar -czvf ElixirCore-linux.tar.gz -C staging .
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
@@ -55,15 +55,16 @@ jobs:
       - name: Setup MSVC Developer Environment
         uses: ilammy/msvc-dev-cmd@v1
 
-      - name: Restore CMake + FetchContent Cache
+      - name: Restore FetchContent Cache
         uses: actions/cache@v4
         with:
-          path: |
-            ~/.cache
-            build
-          key: cmake-linux-${{ hashFiles('**/CMakeLists.txt') }}
+          path: ~/.cache
+          key: fetchcontent-windows-${{ hashFiles('**/CMakeLists.txt') }}
           restore-keys: |
-            cmake-linux-
+            fetchcontent-windows-
+
+      - name: Clean Previous Build
+        run: Remove-Item -Recurse -Force build
 
       - name: Configure and Build
         run: |
@@ -71,12 +72,10 @@ jobs:
           cmake --build build --config Debug
 
       - name: Install to Staging Dir
-        run: |
-          cmake --install build --prefix staging
+        run: cmake --install build --prefix staging
 
       - name: Create Archive
-        run: |
-          tar -czvf ElixirCore-windows.tar.gz -C staging .
+        run: tar -czvf ElixirCore-windows.tar.gz -C staging .
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
@@ -91,18 +90,18 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install Dependencies
-        run: |
-          brew install cmake ninja
+        run: brew install cmake ninja
 
-      - name: Restore CMake + FetchContent Cache
+      - name: Restore FetchContent Cache
         uses: actions/cache@v4
         with:
-          path: |
-            ~/.cache
-            build
-          key: cmake-linux-${{ hashFiles('**/CMakeLists.txt') }}
+          path: ~/.cache
+          key: fetchcontent-macos-${{ hashFiles('**/CMakeLists.txt') }}
           restore-keys: |
-            cmake-linux-
+            fetchcontent-macos-
+
+      - name: Clean Previous Build
+        run: rm -rf build
 
       - name: Configure and Build
         run: |
@@ -110,12 +109,10 @@ jobs:
           cmake --build build --config Debug
 
       - name: Install to Staging Dir
-        run: |
-          cmake --install build --prefix staging
+        run: cmake --install build --prefix staging
 
       - name: Create Archive
-        run: |
-          tar -czvf ElixirCore-macos.tar.gz -C staging .
+        run: tar -czvf ElixirCore-macos.tar.gz -C staging .
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4

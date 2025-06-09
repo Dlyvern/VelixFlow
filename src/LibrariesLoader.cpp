@@ -1,11 +1,5 @@
 #include "LibrariesLoader.hpp"
 
-#ifdef _WIN32
-    #include <windows.h>
-#else
-    #include <dlfcn.h>
-#endif
-
 #include <iostream>
 
 LibraryHandle elix::LibrariesLoader::loadLibrary(const std::string &libraryPath)
