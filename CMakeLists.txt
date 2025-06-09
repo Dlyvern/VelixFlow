@@ -375,7 +375,7 @@ install(TARGETS ElixirCore
 
 if(ELIXIR_PLATFORM_WINDOWS)
     install(FILES
-        ${GLFW_ROOT}/lib/windows/glfw3.libs
+        ${GLFW_ROOT}/lib/windows/glfw3.lib
         ${LIBZ_ROOT}/lib/windows/zlib1.lib
         ${ASSIMP_ROOT}/lib/assimp.lib
         ${FREETYPE_ROOT}/lib/freetype.lib
