@@ -64,8 +64,11 @@ jobs:
             fetchcontent-windows-
 
       - name: Clean Previous Build
-        run: Remove-Item -Recurse -Force build
-
+        shell: pwsh
+        run: |
+          if (Test-Path build) {
+            Remove-Item -Recurse -Force build
+          }
       - name: Configure and Build
         run: |
           cmake -S . -B build -G Ninja -DELIXIR_USE_PHYSX=OFF -DPHYSX_BUILD_TYPE=checked
