@@ -42,9 +42,6 @@ set(LIBZ_ROOT ${CMAKE_SOURCE_DIR}/external/libz)
 
 option(ELIXIR_USE_PHYSX "Enable NVIDIA PhysX support" ON)
 
-
-#set(ELIXIR_USE_PHYSX OFF)
-
 if(WIN32)
     message(WARNING "PhysX is not supported for windows build. Disabling PhysX")
     set(ELIXIR_USE_PHYSX OFF)
@@ -105,6 +102,7 @@ else()
     add_compile_definitions(NDEBUG)
 endif()
 
+include(FetchContent)
 
 function(use_or_fetch name root_dir lib_path git_repo git_tag)
     if(EXISTS "${root_dir}/${lib_path}")

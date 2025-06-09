@@ -10,16 +10,8 @@ jobs:
   build-linux:
     runs-on: ubuntu-22.04
     steps:
-      - name: Install Git LFS
-        run: |
-            sudo apt-get update
-            sudo apt-get install -y git-lfs
-            git lfs install
-
-      - name: Checkout Code with LFS
+      - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          lfs: true
 
       - name: Install Dependencies
         run: |
@@ -38,7 +30,7 @@ jobs:
 
       - name: Configure and Build
         run: |
-          cmake -S . -B build -G Ninja -DPHYSX_BUILD_TYPE=checked
+          cmake -S . -B build -G Ninja -DELIXIR_USE_PHYSX=OFF -DPHYSX_BUILD_TYPE=checked
           cmake --build build --config Debug
       - name: Install to Staging Dir
         run: |
@@ -57,13 +49,8 @@ jobs:
   build-windows:
     runs-on: windows-latest
     steps:
-      - name: Install Git LFS
-        run: git lfs install
-
       - name: Checkout Code
         uses: actions/checkout@v4
-        with:
-          lfs: true
 
       - name: Setup MSVC Developer Environment
         uses: ilammy/msvc-dev-cmd@v1
@@ -100,15 +87,8 @@ jobs:
   build-macos:
     runs-on: macos-latest
     steps:
-      - name: Install Git LFS
-        run: |
-          brew install git-lfs
-          git lfs install
-
-      - name: Checkout Code with LFS
+      - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          lfs: true
 
       - name: Install Dependencies
         run: |
@@ -126,7 +106,7 @@ jobs:
 
       - name: Configure and Build
         run: |
-          cmake -S . -B build -G Ninja -DPHYSX_BUILD_TYPE=checked
+          cmake -S . -B build -G Ninja -DELIXIR_USE_PHYSX=OFF -DPHYSX_BUILD_TYPE=checked
           cmake --build build --config Debug
 
       - name: Install to Staging Dir
