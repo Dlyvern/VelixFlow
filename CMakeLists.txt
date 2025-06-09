@@ -344,15 +344,15 @@ endforeach()
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
-if(ELIXIR_PLATFORM_WINDOWS AND EXISTS "${LIBZ_ROOT}/bin/windows/zlib1.dll")
+if(ELIXIR_PLATFORM_WINDOWS AND EXISTS "${LIBZ_ROOT}/lib/windows/zlib1.dll")
     add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${LIBZ_ROOT}/bin/windows/zlib1.dll"
+            "${LIBZ_ROOT}/lib/windows/zlib1.dll"
             $<TARGET_FILE_DIR:${PROJECT_NAME}>
     )
 
-elseif (ELIXIR_PLATFORM_WINDOWS AND NOT EXISTS "${LIBZ_ROOT}/bin/windows/zlib1.dll")
-    message(STATUS "FAiled to look for zlib DLL at: ${LIBZ_ROOT}/bin/windows/zlib1.dll. Skipping copy")
+elseif (ELIXIR_PLATFORM_WINDOWS AND NOT EXISTS "${LIBZ_ROOT}/lib/windows/zlib1.dll")
+    message(STATUS "Failed to look for zlib DLL at: ${LIBZ_ROOT}/lib/windows/zlib1.dll. Skipping copy")
 endif()
 
 install(TARGETS glad
@@ -373,7 +373,7 @@ install(TARGETS ElixirCore
 
 if(ELIXIR_PLATFORM_WINDOWS)
     install(FILES
-        ${GLFW_ROOT}/lib/glfw3.lib
+        ${GLFW_ROOT}/lib/windows/glfw3.lib
         ${LIBZ_ROOT}/lib/windows/zlib1.lib
         ${ASSIMP_ROOT}/lib/assimp.lib
         ${FREETYPE_ROOT}/lib/freetype.lib
