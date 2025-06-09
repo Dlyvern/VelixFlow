@@ -8,7 +8,7 @@
 
 #include <iostream>
 
-void* elix::LibrariesLoader::loadLibrary(const std::string &libraryPath)
+LibraryHandle elix::LibrariesLoader::loadLibrary(const std::string &libraryPath)
 {
 #ifdef _WIN32
     HMODULE lib = LoadLibrary(libraryPath.c_str());
@@ -28,15 +28,15 @@ void* elix::LibrariesLoader::loadLibrary(const std::string &libraryPath)
 #endif
 }
 
-void* elix::LibrariesLoader::getFunction(const std::string &functionName, void *library)
+void* elix::LibrariesLoader::getFunction(const std::string &functionName, LibraryHandle library)
 {
 #ifdef _WIN32
-    void* function = GetProcAddress(library, functionName.c_str());
+    FARPROC function = GetProcAddress(library, functionName.c_str());
 
     if (!function)
         std::cerr << "LibrariesLoader::getFunction(): Failed to get function " << functionName << std::endl;
 
-    return function;
+return reinterpret_cast<void*>(function);
 #else
 
     void* function = dlsym(library, functionName.c_str());
@@ -49,7 +49,7 @@ void* elix::LibrariesLoader::getFunction(const std::string &functionName, void *
 #endif
 }
 
-void elix::LibrariesLoader::closeLibrary(void *library)
+void elix::LibrariesLoader::closeLibrary(LibraryHandle library)
 {
 #ifdef _WIN32
     FreeLibrary(library);
