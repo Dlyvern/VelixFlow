@@ -352,8 +352,8 @@ if(ELIXIR_PLATFORM_WINDOWS)
     install(FILES
         ${GLFW_ROOT}/lib/windows/glfw3.lib
 #        ${LIBZ_ROOT}/lib/windows/zlib.lib
-#        ${ASSIMP_ROOT}/lib/assimp.lib
-        ${FREETYPE_ROOT}/lib/freetype.lib
+#        ${ASSIMP_ROOT}/lib/windows/assimp.lib
+        ${FREETYPE_ROOT}/lib/windows/freetype.lib
 #        ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXExtensions_static_64.lib
 #        ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysX_static_64.lib
 #        ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXPvdSDK_static_64.lib
