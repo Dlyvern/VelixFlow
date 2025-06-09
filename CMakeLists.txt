@@ -202,18 +202,6 @@ target_include_directories(glad
 
 set_target_properties(glad PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-
-if(ELIXIR_PLATFORM_WINDOWS)
-
-add_library(zlib_shared SHARED IMPORTED)
-
-set_target_properties(zlib_shared PROPERTIES
-        IMPORTED_IMPLIB "${LIBZ_ROOT}/lib/windows/zlib1.lib"
-        IMPORTED_LOCATION "${LIBZ_ROOT}/lib/windows/zlib1.dll"
-)
-endif ()
-
-
 # === Create Static Library ===
 add_library(${PROJECT_NAME} STATIC ${PROJECT_HEADERS} ${PROJECT_SOURCES}  ${EMBEDDED_SHADER_SOURCES})
 add_library(Elixir::ElixirCore ALIAS ElixirCore)
@@ -280,9 +268,8 @@ if(ELIXIR_PLATFORM_WINDOWS)
 #            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXFoundation_static_64.lib
 #            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXCharacterKinematic_static_64.lib
             OpenGL::OpenGL
-            zlib_shared
+#            ${LIBZ_ROOT}/lib/windows/zlib.lib
             ${GLFW_ROOT}/lib/windows/glfw3.lib
-#            ${ASSIMP_ROOT}/lib/windows/assimp.lib
             assimp
             ${FREETYPE_ROOT}/lib/windows/freetype.lib
             Threads::Threads
@@ -297,7 +284,7 @@ elseif(ELIXIR_PLATFORM_MACOS)
             ${PHYSX_ROOT}/lib/linux/${PHYSX_BUILD_TYPE}/libPhysXFoundation_static_64.a
             ${PHYSX_ROOT}/lib/linux/${PHYSX_BUILD_TYPE}/libPhysXCharacterKinematic_static_64.a
             ${GLFW_ROOT}/lib/linux/libglfw3.a
-#            ${ASSIMP_ROOT}/lib/linux/libassimp.a
+            ${ASSIMP_ROOT}/lib/linux/libassimp.a
             assimp
             ${FREETYPE_ROOT}/lib/linux/libfreetype.a
             ${LIBZ_ROOT}/lib/linux/libz.a
@@ -319,7 +306,8 @@ else()
             -Wl,--end-group
             OpenGL::OpenGL
             ${GLFW_ROOT}/lib/linux/libglfw3.a
-            ${ASSIMP_ROOT}/lib/linux/libassimp.a
+#            ${ASSIMP_ROOT}/lib/linux/libassimp.a
+            assimp
             ${FREETYPE_ROOT}/lib/linux/libfreetype.a
             Threads::Threads
             ${LIBZ_ROOT}/lib/linux/libz.a
@@ -344,19 +332,6 @@ endforeach()
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
-if(ELIXIR_PLATFORM_WINDOWS AND EXISTS "${LIBZ_ROOT}/lib/windows/zlib1.dll")
-    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${LIBZ_ROOT}/lib/windows/zlib1.dll"
-            $<TARGET_FILE_DIR:${PROJECT_NAME}>
-    )
-
-    message(STATUS "Found zlib dll at: ${LIBZ_ROOT}/lib/windows/zlib1.dll")
-
-elseif (ELIXIR_PLATFORM_WINDOWS AND NOT EXISTS "${LIBZ_ROOT}/lib/windows/zlib1.dll")
-    message(STATUS "Failed to look for zlib DLL at: ${LIBZ_ROOT}/lib/windows/zlib1.dll. Skipping copy")
-endif()
-
 install(TARGETS glad
         EXPORT ElixirCoreTargets
         ARCHIVE DESTINATION lib
@@ -376,7 +351,7 @@ install(TARGETS ElixirCore
 if(ELIXIR_PLATFORM_WINDOWS)
     install(FILES
         ${GLFW_ROOT}/lib/windows/glfw3.lib
-        ${LIBZ_ROOT}/lib/windows/zlib1.lib
+#        ${LIBZ_ROOT}/lib/windows/zlib.lib
         ${ASSIMP_ROOT}/lib/assimp.lib
         ${FREETYPE_ROOT}/lib/freetype.lib
 #        ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXExtensions_static_64.lib
@@ -389,10 +364,10 @@ if(ELIXIR_PLATFORM_WINDOWS)
         DESTINATION lib
     )
 
-    install(FILES
-            ${LIBZ_ROOT}/lib/windows/zlib1.dll
-            DESTINATION bin
-    )
+#    install(FILES
+#            ${LIBZ_ROOT}/lib/windows/zlib1.dll
+#            DESTINATION bin
+#    )
 
 endif()
 
