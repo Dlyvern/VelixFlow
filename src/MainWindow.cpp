@@ -71,7 +71,7 @@ void window::MainWindow::setViewport(int x, int y, int width, int height)
         viewportY = y;
         viewportWidth = width;
         viewportHeight = height;
-        ELIX_LOG_INFO("Changed viewport to ", width, " ", height);
+        // ELIX_LOG_INFO("Changed viewport to ", width, " ", height);
     }
 }
 
@@ -83,7 +83,7 @@ void window::MainWindow::viewport() const
     viewportWidth = m_currentWindowData.width;
     viewportHeight = m_currentWindowData.height;
 
-    ELIX_LOG_INFO("Changed viewport to ", m_currentWindowData.width, " ", m_currentWindowData.height);
+    // ELIX_LOG_INFO("Changed viewport to ", m_currentWindowData.width, " ", m_currentWindowData.height);
 }
 
 void window::MainWindow::swapBuffers() const

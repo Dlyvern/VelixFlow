@@ -77,12 +77,16 @@ void elix::Shader::load(const std::string &vertexPath, const std::string &fragme
     const GLuint vertex = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex, 1, &vertexCode, nullptr);
     glCompileShader(vertex);
-    ::checkCompileErrors(vertex, "VERTEX");
+   
+    if(!::checkCompileErrors(vertex, "VERTEX"))
+	    ELIX_LOG_ERROR("Failed to compile: ", vertexPath);
 
     const GLuint fragment = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragment, 1, &fragmentCode, nullptr);
     glCompileShader(fragment);
-    ::checkCompileErrors(fragment, "FRAGMENT");
+
+    if(!::checkCompileErrors(fragment, "FRAGMENT"))
+	    ELIX_LOG_ERROR("Failed to compile: ", fragmentPath);
 
     GLuint geometry = 0;
 
@@ -115,7 +119,7 @@ void elix::Shader::load(const std::string &vertexPath, const std::string &fragme
         m_id = tempID;
     }
     else
-        ELIX_LOG_ERROR("Shader failed to compile ", vertexPath.c_str(), fragmentPath.c_str());
+        ELIX_LOG_ERROR("Shader failed to compile ", vertexPath, fragmentPath);
 
     glDeleteShader(vertex);
     glDeleteShader(fragment);

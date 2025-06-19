@@ -2,34 +2,13 @@
 #define TEXTURE_HPP
 
 #include <string>
+#include <vector>
 
 namespace elix
 {
-    class Texture {
+    class Texture
+    {
     public:
-        struct TextureData
-        {
-        public:
-            int width{0};
-            int height{0};
-            int numberOfChannels{0};
-            unsigned char* data{nullptr};
-            float* dataFloat{nullptr};
-        };
-
-        enum class TextureWrap
-        {
-            Repeat,
-            ClampToEdge,
-            ClampToBorder
-        };
-
-        enum class TextureFilter
-        {
-            Nearest,
-            Linear,
-            LinearMipmapLinear
-        };
 
         enum class TextureFormat
         {
@@ -63,47 +42,55 @@ namespace elix
             RenderTarget
         };
 
-        enum class BakingType
-        {
-            Float,
-            UnsignedByte
-        };
 
-        struct TextureParams
+        struct TextureData
         {
-            TextureWrap wrapS = TextureWrap::Repeat;
-            TextureWrap wrapT = TextureWrap::Repeat;
-            TextureWrap wrapR = TextureWrap::Repeat;
-            TextureFilter minFilter = TextureFilter::Linear;
-            TextureFilter magFilter = TextureFilter::Linear;
-            BakingType bakingType = BakingType::UnsignedByte;
-            bool generateMipmaps = true;
-            TextureFormat format = TextureFormat::RGBA;
-            TextureUsage usage = TextureUsage::Standard2D;
-            bool flipVertically = true;
+        public:
             int width{0};
             int height{0};
-            float borderColor[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-
-
-            bool useFloat{false};
+            int numberOfChannels{0};
+            unsigned char* data{nullptr};
+            TextureFormat format;
         };
 
-        explicit Texture(const std::string& filePath, TextureParams* params = nullptr);
+        enum class ParameterType
+        {
+            MIN_FILTER,
+            MAG_FILTER,
+            WRAP_S,
+            WRAP_T 
+        };
+
+        enum class ParameterValue
+        {
+            LINEAR,
+            REPEAT
+        };
+
+        struct Parameter
+        {
+            ParameterType type;
+            ParameterValue value;
+            TextureUsage usage;
+        };
+
+        explicit Texture(const std::string& filePath);
 
         Texture();
 
-        void loadEmpty(TextureParams* params = nullptr);
+        void create();
 
-        void load(const std::string& filePath, TextureParams* params = nullptr);
+        void addDefaultParameters();
+
+        void addParameter(TextureUsage usage, ParameterType type, ParameterValue value);
+
+        void load(const std::string& filePath);
 
         [[nodiscard]]const std::string& getName() const;
 
         [[nodiscard]]unsigned int getId() const;
 
         void bake();
-
-        void bakeCubemap(int width, int height);
 
         [[nodiscard]] bool isBaked() const;
 
@@ -113,11 +100,11 @@ namespace elix
 
         ~Texture();
     private:
+        std::vector<Parameter> m_textureParameters;
         bool m_isBaked{false};
         unsigned int m_id{0};
         TextureData m_textureData;
         std::string m_name;
-        TextureParams m_parameters;
     };
 
 } //namespace elix

@@ -8,6 +8,8 @@ layout(location = 4) in vec3 bitangent;
 layout(location = 5) in ivec4 boneIds;
 layout(location = 6) in vec4 weights;
 
+
+#define MAX_LIGHTS 4
 const int MAX_BONES = 100;
 const int MAX_BONE_INFLUENCE = 4;
 
@@ -15,13 +17,13 @@ uniform mat4 finalBonesMatrices[MAX_BONES];
 uniform mat4 projection;
 uniform mat4 view;
 uniform mat4 model;
-uniform mat4 lightSpaceMatrix;
+uniform mat4 lightSpaceMatrices[MAX_LIGHTS];
 
 out VS_OUT {
     vec3 FragPos;
     vec3 Normal;
     vec2 TexCoords;
-    vec4 FragPosLightSpace;
+    vec4 FragPosLightSpace[MAX_LIGHTS];
 } vs_out;
 
 
@@ -43,7 +45,12 @@ void main()
     vs_out.FragPos = vec3(worldPos);
     vs_out.Normal = mat3(transpose(inverse(model * boneTransform))) * norm;
     vs_out.TexCoords = tex;
-    vs_out.FragPosLightSpace = lightSpaceMatrix * worldPos;
+    
+    for (int i = 0; i < MAX_LIGHTS; ++i)
+    {
+        vs_out.FragPosLightSpace[i] = lightSpaceMatrices[i] * worldPos;
+    }
+
 
     gl_Position = projection * view * worldPos;
 }

@@ -89,13 +89,13 @@ void elix::Logger::logInternal(LogLevel level, const std::string &message, const
 
     //TODO write shit to terminal
     {
-        std::lock_guard<std::mutex> lock(m_mutex);
-
-        setConsoleColor(level);
-
-        (level == LogLevel::ELIX_INFO ? std::cout : std::cerr) << formatted << std::endl;
-
-        resetConsoleColor();
+         std::lock_guard<std::mutex> lock(m_mutex);
+        //
+         setConsoleColor(level);
+        //
+         (level == LogLevel::ELIX_INFO ? std::cout : std::cerr) << formatted << std::endl;
+        //
+         resetConsoleColor();
     }
 
     // Thread-safe message storage

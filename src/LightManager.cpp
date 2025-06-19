@@ -1,5 +1,4 @@
 #include "LightManager.hpp"
-#include <iostream>
 
 LightManager& LightManager::instance()
 {
@@ -9,6 +8,7 @@ LightManager& LightManager::instance()
 
 void LightManager::addLight(lighting::Light* light)
 {
+    light->id = m_lights.size();
     m_lights.push_back(light);
 }
 
@@ -27,10 +27,10 @@ std::vector<lighting::Light*> LightManager::getLights() const
 
 lighting::Light* LightManager::getDirectionalLight() const
 {
-    for (const auto& light : m_lights)
-        if (light->type == lighting::LightType::DIRECTIONAL)
-            return light;
+    auto it = std::find_if(m_lights.begin(), m_lights.end(), [](const lighting::Light* light) {return light->type == lighting::LightType::DIRECTIONAL; });
 
+    if(it != m_lights.end())  return *it;
+	
     return nullptr;
 }
 
@@ -72,43 +72,3 @@ void LightManager::sendLightsIntoShader(const elix::Shader &shader) const
     }
 }
 
-std::vector<glm::mat4> LightManager::getLightSpaceMatrix() const
-{
-    return m_lightSpaceMatrix;
-}
-
-void LightManager::setLightSpaceMatrix(const std::vector<glm::mat4> &matrix)
-{
-    m_lightSpaceMatrix = matrix;
-}
-
-void LightManager::setLightSpaceMatricesInShader(elix::Shader &shader) const
-{
-    for (size_t i = 0; i < m_lightSpaceMatrix.size() && i < MAX_LIGHTS; ++i)
-    {
-        shader.setMat4("lightSpaceMatrices[" + std::to_string(i) + "]", m_lightSpaceMatrix[i]);
-    }
-}
-
-void LightManager::bindGlobalLighting(elix::Shader &shader)
-{
-    shader.setInt("shadowMap", 8);
-}
-
-void LightManager::bindSpotLighting(elix::Shader &shader)
-{
-    const auto& spotLights = getSpotLights();
-
-    for (size_t i = 0; i < spotLights.size(); ++i)
-        shader.setInt("spotShadowMaps[" + std::to_string(i) + "]", 10 + i);
-}
-
-void LightManager::bindPointLighting(elix::Shader &shader)
-{
-    const auto& pointLights = getPointLights();
-
-    for (size_t i = 0; i < pointLights.size(); ++i)
-    {
-        shader.setInt("pointShadowMaps[" + std::to_string(i) + "]", 15 + i);
-    }
-}

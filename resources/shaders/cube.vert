@@ -18,7 +18,6 @@ uniform mat4 projection;
 
 uniform mat4 lightSpaceMatrices[MAX_LIGHTS];
 
-
 void main()
 {
     vec4 worldPosition = model * vec4(aPos, 1.0);

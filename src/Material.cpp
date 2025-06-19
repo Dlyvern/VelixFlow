@@ -56,7 +56,14 @@ void Material::bind(elix::Shader &shader)
         if (texture)
         {
             if (!texture->isBaked())
+            {
+                texture->create();
+
+                texture->addDefaultParameters();
+
                 texture->bake();
+            }
+
 
             texture->bind(textureUnit);
             shader.setInt(uniformName, textureUnit);

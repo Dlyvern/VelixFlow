@@ -10,7 +10,6 @@ in VS_OUT {
     vec4 FragPosLightSpace[MAX_LIGHTS];
 } fs_in;
 
-
 const int LIGHT_TYPE_DIRECTIONAL = 0;
 const int LIGHT_TYPE_POINT       = 1;
 const int LIGHT_TYPE_SPOT        = 2;
@@ -51,9 +50,8 @@ uniform vec3 viewPos;
 
 uniform Light lights[MAX_LIGHTS];
 
-uniform sampler2D shadowMap;
+uniform sampler2D shadowMaps[MAX_LIGHTS];
 
-uniform sampler2D spotShadowMaps[MAX_LIGHTS];
 uniform samplerCube pointShadowMaps[MAX_LIGHTS];
 
 
@@ -63,8 +61,7 @@ float PointLightShadow(vec3 fragPos, Light light, samplerCube depthMap)
     float currentDepth = length(fragToLight);
     float closestDepth = texture(depthMap, fragToLight).r * light.farPlane;
 
-    // Bias to avoid shadow acne (based on angle and distance)
-    float bias = 0.15; // You can also make this dynamic
+    float bias = 0.15;
     float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
 
     return shadow;
@@ -72,34 +69,6 @@ float PointLightShadow(vec3 fragPos, Light light, samplerCube depthMap)
 
 float ShadowCalculation(vec4 fragPosLightSpace, vec3 lightDir, sampler2D shadowMapToUse)
 {
-    //    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-    //    projCoords = projCoords * 0.5 + 0.5;
-    //
-    //    if (projCoords.z > 1.0)
-    //    return 0.0;
-    //
-    //    float currentDepth = projCoords.z;
-    //    vec3 normal = normalize(fs_in.Normal);
-    //    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
-    //
-    //    float shadow = 0.0;
-    //    float samples = 4.0; // 4x4 kernel (16 samples)
-    //    float range = 1.5;   // softer shadows = bigger range
-    //    vec2 texelSize = 1.0 / textureSize(shadowMapToUse, 0);
-    //
-    //    for (float x = -samples; x <= samples; ++x)
-    //    {
-    //        for (float y = -samples; y <= samples; ++y)
-    //        {
-    //            float pcfDepth = texture(shadowMapToUse, projCoords.xy + vec2(x, y) * texelSize * range / samples).r;
-    //            shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;
-    //        }
-    //    }
-    //
-    //    shadow /= pow((2.0 * samples + 1.0), 2.0); // normalize
-    //
-    //    return shadow;
-
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
     projCoords = projCoords * 0.5 + 0.5;
 
@@ -127,7 +96,7 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 lightDir, sampler2D shadowM
     shadow /= 9.0;
 
     if(projCoords.z > 1.0)
-    shadow = 0.0;
+        shadow = 0.0;
 
     return shadow;
 }
@@ -182,7 +151,7 @@ vec3 calculateDirectionalLight(Light light, vec3 albedo, float roughness, float 
     vec3 diffuse = diff * albedo * light.color * light.strength;
     vec3 specular = spec * mix(vec3(0.04), albedo, metallic) * light.strength;
 
-    float shadow = ShadowCalculation(fs_in.FragPosLightSpace[index], lightDir, shadowMap);
+    float shadow = ShadowCalculation(fs_in.FragPosLightSpace[index], lightDir, shadowMaps[index]);
     diffuse *= (1.0 - shadow);
     specular *= (1.0 - shadow);
 
@@ -202,14 +171,15 @@ vec3 calculateSpotLight(Light light, vec3 albedo, float roughness, float metalli
     vec3 diffuse = diff * albedo * light.color * light.strength;
     vec3 specular = spec * mix(vec3(0.04), albedo, metallic) * light.strength;
 
-    float theta = dot(lightDir, normalize(-light.direction));
+    float theta = dot(normalize(fs_in.FragPos - light.position), normalize(light.direction));
+
     float epsilon = light.cutoff - light.outerCutoff;
     float intensity = clamp((theta - light.outerCutoff) / epsilon, 0.0, 1.0);
 
     diffuse *= intensity;
     specular *= intensity;
 
-    float shadow = ShadowCalculation(fs_in.FragPosLightSpace[index], lightDir, spotShadowMaps[index]);
+    float shadow = ShadowCalculation(fs_in.FragPosLightSpace[index], lightDir, shadowMaps[index]);
     diffuse *= (1.0 - shadow);
     specular *= (1.0 - shadow);
 

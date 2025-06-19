@@ -23,7 +23,7 @@ public:
     float radius{2.0f};
     LightType type{LightType::DIRECTIONAL};
     glm::vec3 direction;
-
+    unsigned int id;
     float cutoff = glm::cos(glm::radians(12.5f));
     float outerCutoff = glm::cos(glm::radians(17.5f));
 

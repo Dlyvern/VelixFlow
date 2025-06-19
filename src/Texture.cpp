@@ -8,57 +8,51 @@
 #include <filesystem>
 #include <iostream>
 
+#include "Logger.hpp"
+
 namespace
 {
-    elix::Texture::TextureData getTextureDataFromFile(const std::string& filePath, bool flipVertically, bool useFloat = false)
+    elix::Texture::TextureData getTextureDataFromFile(const std::string& filePath, bool flipVertically)
     {
         stbi_set_flip_vertically_on_load(flipVertically);
 
         elix::Texture::TextureData textureData{};
 
-        if (!useFloat)
-        {
             textureData.data = stbi_load(filePath.data(), &textureData.width, &textureData.height, &textureData.numberOfChannels, 0);
 
             if(!textureData.data)
-                std::cout << "getTextureDataFromFile(): Failed to load a texture" << filePath << std::endl;
-        }
-        else
-        {
-            textureData.dataFloat = stbi_loadf(filePath.data(), &textureData.width, &textureData.height, &textureData.numberOfChannels, 0);
-            if(!textureData.dataFloat)
-                std::cout << "getTextureDataFromFile(): Failed to load a texture" << filePath << std::endl;
-        }
+                ELIX_LOG_ERROR("Failed to load a texture: ", filePath);
 
         return textureData;
     }
 
-    GLenum toGL(elix::Texture::TextureWrap wrap) {
-        switch (wrap) {
-            case elix::Texture::TextureWrap::Repeat: return GL_REPEAT;
-            case elix::Texture::TextureWrap::ClampToEdge: return GL_CLAMP_TO_EDGE;
-            case elix::Texture::TextureWrap::ClampToBorder: return GL_CLAMP_TO_BORDER;
-        }
-        return GL_REPEAT;
-    }
 
-    GLenum toGL(elix::Texture::TextureFilter filter) {
-        switch (filter) {
-            case elix::Texture::TextureFilter::Nearest: return GL_NEAREST;
-            case elix::Texture::TextureFilter::Linear: return GL_LINEAR;
-            case elix::Texture::TextureFilter::LinearMipmapLinear: return GL_LINEAR_MIPMAP_LINEAR;
-        }
-        return GL_LINEAR;
-    }
-
-    GLenum toGL(elix::Texture::BakingType bakingType)
+    GLenum toGL(elix::Texture::ParameterType type)
     {
-        switch (bakingType) {
-            case elix::Texture::BakingType::Float: return GL_FLOAT;
-            case elix::Texture::BakingType::UnsignedByte: return GL_UNSIGNED_BYTE;
+        switch(type)
+        {
+            case elix::Texture::ParameterType::MAG_FILTER: return GL_TEXTURE_MAG_FILTER;
+
+            case elix::Texture::ParameterType::MIN_FILTER: return GL_TEXTURE_MIN_FILTER;
+
+            case elix::Texture::ParameterType::WRAP_S: return GL_TEXTURE_WRAP_S;
+
+            case elix::Texture::ParameterType::WRAP_T: return GL_TEXTURE_WRAP_T;
         }
 
-        return GL_UNSIGNED_BYTE;
+        return GL_NONE;
+    }
+
+
+    GLenum toGL(elix::Texture::ParameterValue value)
+    {
+        switch(value)
+        {
+            case elix::Texture::ParameterValue::LINEAR: return GL_LINEAR;
+            case elix::Texture::ParameterValue::REPEAT: return GL_REPEAT;
+        }
+
+        return GL_NONE;
     }
 
     GLenum toGL(elix::Texture::TextureFormat format)
@@ -71,40 +65,50 @@ namespace
         }
         return GL_RGB;
     }
+
+
+    GLenum toGL(elix::Texture::TextureUsage usage)
+    {
+        switch(usage)
+        {
+            case elix::Texture::TextureUsage::Standard2D: return GL_TEXTURE_2D;
+            case elix::Texture::Texture::TextureUsage::RenderTarget: return GL_NONE;
+         }
+
+        return GL_NONE;
+    }
 }
 
 elix::Texture::Texture() = default;
 
-void elix::Texture::loadEmpty(TextureParams *params)
+elix::Texture::Texture(const std::string &filePath)
 {
-    if (params)
-        m_parameters = *params;
+    load(filePath);
 }
 
-elix::Texture::Texture(const std::string &filePath, TextureParams* params)
+void elix::Texture::load(const std::string &filePath)
 {
-    load(filePath, params);
-}
-
-void elix::Texture::load(const std::string &filePath, TextureParams* params)
-{
-    if (params)
-        m_parameters = *params;
-
-    m_textureData = getTextureDataFromFile(filePath, params ? params->flipVertically : false, params ? params->useFloat : false);
+    m_textureData = getTextureDataFromFile(filePath, false);
 
     if (m_textureData.numberOfChannels == 4)
-        m_parameters.format = elix::Texture::TextureFormat::RGBA;
+        m_textureData.format = elix::Texture::TextureFormat::RGBA;
     else if (m_textureData.numberOfChannels == 3)
-        m_parameters.format = elix::Texture::TextureFormat::RGB;
+        m_textureData.format = elix::Texture::TextureFormat::RGB;
     else if (m_textureData.numberOfChannels == 1)
-        m_parameters.format = elix::Texture::TextureFormat::RED;
-
-    m_parameters.width = m_textureData.width;
-    m_parameters.height = m_textureData.height;
+        m_textureData.format = elix::Texture::TextureFormat::RED;
 
     const std::filesystem::path file(filePath);
     m_name = file.filename().string();
+}
+
+void elix::Texture::addParameter(elix::Texture::TextureUsage usage, elix::Texture::ParameterType type, elix::Texture::ParameterValue value)
+{
+    elix::Texture::Parameter parameter;
+    parameter.type = type;
+    parameter.usage = usage;
+    parameter.value = value;
+
+    m_textureParameters.push_back(parameter);
 }
 
 const std::string& elix::Texture::getName() const
@@ -117,60 +121,41 @@ unsigned int elix::Texture::getId() const
     return m_id;
 }
 
-void elix::Texture::bake()
+void elix::Texture::addDefaultParameters()
 {
-    glGenTextures(1, &m_id);
-    glBindTexture(GL_TEXTURE_2D, m_id);
+    addParameter(TextureUsage::Standard2D, ParameterType::MIN_FILTER, ParameterValue::LINEAR);
 
-    if (m_parameters.usage == elix::Texture::TextureUsage::Standard2D)
-    {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, toGL(m_parameters.minFilter));
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, toGL(m_parameters.magFilter));
+    addParameter(TextureUsage::Standard2D, ParameterType::MAG_FILTER, ParameterValue::LINEAR);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, toGL(m_parameters.wrapS));
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, toGL(m_parameters.wrapT));
+    addParameter(TextureUsage::Standard2D, ParameterType::WRAP_S, ParameterValue::REPEAT);
 
-        if (m_parameters.wrapS == TextureWrap::ClampToBorder || m_parameters.wrapT == TextureWrap::ClampToBorder)
-            glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, m_parameters.borderColor);
-    }
-    else if (m_parameters.usage == elix::Texture::TextureUsage::RenderTarget)
-    {
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, toGL(m_parameters.minFilter));
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, toGL(m_parameters.magFilter));
-    }
-
-    glTexImage2D(GL_TEXTURE_2D, 0, toGL(m_parameters.format), m_parameters.width, m_parameters.height, 0, toGL(m_parameters.format), toGL(m_parameters.bakingType), m_parameters.useFloat ? (void*)m_textureData.dataFloat : (void*)m_textureData.data);
-
-    if (m_parameters.generateMipmaps)
-        glGenerateMipmap(GL_TEXTURE_2D);
-
-    if (m_textureData.data)
-        stbi_image_free(m_textureData.data);
-
-    if (m_textureData.dataFloat)
-        stbi_image_free(m_textureData.dataFloat);
-
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    m_textureData.data = nullptr;
-    m_isBaked = true;
+    addParameter(TextureUsage::Standard2D, ParameterType::WRAP_T, ParameterValue::REPEAT);  
 }
 
-void elix::Texture::bakeCubemap(int width, int height)
+void elix::Texture::create()
 {
     glGenTextures(1, &m_id);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, m_id);
+}
 
-    for (unsigned int i = 0; i < 6; ++i)
-        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, nullptr);
+void elix::Texture::bake()
+{
+    glBindTexture(GL_TEXTURE_2D, m_id);
 
+    for(const auto& param : m_textureParameters)
+        glTexParameteri(toGL(param.usage), toGL(param.type), toGL(param.value));
 
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, toGL(m_textureData.format), m_textureData.width, m_textureData.height, 0, toGL(m_textureData.format), GL_UNSIGNED_BYTE, m_textureData.data);
 
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+   
+    if(m_textureData.data)
+        stbi_image_free(m_textureData.data);
+
+    m_textureData.data = nullptr;
+
+    m_isBaked = true;
 }
 
 bool elix::Texture::isBaked() const

@@ -22,6 +22,10 @@ namespace elix
         [[nodiscard]] float getYaw() const;
         [[nodiscard]] glm::mat4 getProjectionMatrix() const;
 
+        [[nodiscard]] float getFOV() const;
+        [[nodiscard]] float getNear() const;
+        [[nodiscard]] float getFar() const;
+
         void setYaw(float yaw);
         void setPitch(float pitch);
         void setPosition(const glm::vec3& position);

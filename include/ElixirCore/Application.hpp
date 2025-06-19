@@ -7,16 +7,19 @@ namespace elix
     class Application
     {
     public:
+        Application() = default;
+
+        static void initializeCore();
+
+        static void shutdownCore();
+
+        static Application* createApplication();
+
         static Application& instance();
 
         void init();
 
         void shutdown();
-
-    private:
-        Application() = default;
-        Application(const Application&) = delete;
-        Application& operator=(const Application&) = delete;
     };
 }
 

@@ -43,6 +43,10 @@ float elix::CameraComponent::getYaw() const
     return m_yaw;
 }
 
+float elix::CameraComponent::getFOV() const {return m_fov;}
+float elix::CameraComponent::getNear() const {return m_near;};
+float elix::CameraComponent::getFar() const {return m_far;};
+
 glm::mat4 elix::CameraComponent::getProjectionMatrix() const
 {
     return glm::perspective(glm::radians(m_fov), m_aspect, m_near, m_far);

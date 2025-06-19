@@ -25,10 +25,12 @@ void ShaderManager::preLoadShaders()
         return shader;
     };
 
-    m_shaders[SKELETON] = createShader(shader_skeleton_vert, shader_skeleton_frag);
-    m_shaders[STATIC] = createShader(shader_cube_vert, shader_cube_frag);
-    m_shaders[STATIC_SHADOW] = createShader(shader_shadow_map_vert, shader_shadow_map_frag);
-    m_shaders[SKELETON_SHADOW] = createShader(shader_shadow_vert, shader_shadow_frag);
+    m_shaders[SHADOW_DEBUG] = createShader(shader_shadow_debug_vert, shader_shadow_debug_frag);
+
+    m_shaders[SKELETON] = createShader(shader_skeleton_vert, shader_default_frag);
+    m_shaders[STATIC] = createShader(shader_cube_vert, shader_default_frag);
+    m_shaders[STATIC_SHADOW] = createShader(shader_shadow_vert, shader_empty_frag);
+    m_shaders[SKELETON_SHADOW] = createShader(shader_skeleton_shadow_vert, shader_empty_frag);
     m_shaders[POST_PROCESSING] = createShader(shader_post_processing_vert, shader_post_processing_frag);
     m_shaders[LINE] = createShader(shader_line_vert, shader_line_frag);
     m_shaders[TEXT] = createShader(shader_text_vert, shader_text_frag);

@@ -20,6 +20,7 @@ public:
         SKELETON_STENCIL = 8,
         SKYBOX = 9,
         EQUIRECTANGULAR_TO_CUBEMAP = 10,
+        SHADOW_DEBUG = 11,
     };
 
     static ShaderManager& instance();

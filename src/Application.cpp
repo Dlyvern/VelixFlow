@@ -5,7 +5,6 @@
     #include <dbghelp.h>
 #endif
 
-#include <iostream>
 #include <stdexcept>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -78,7 +77,7 @@ void signalHandler(int signal)
     ELIX_LOG_ERROR("Signal %d received. (No backtrace on this platform)", signal);
 #endif
 
-    elix::Application::instance().shutdown();
+    elix::Application::shutdownCore();
 
     std::exit(signal);
 }
@@ -87,9 +86,107 @@ void terminateHandler()
 {
     ELIX_LOG_ERROR("Unhandled exception. Terminating...");
 
-    elix::Application::instance().shutdown();
+    elix::Application::shutdownCore();
 
     std::abort();
+}
+
+void elix::Application::initializeCore()
+{
+    if (!glfwInit())
+        throw std::runtime_error("Application::initializeCore(): Failed to initialize glfw");
+
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+#ifdef __APPLE__
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#else
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+
+    window::WindowsManager::instance().setCurrentWindow(window::WindowsManager::instance().createWindow());
+
+    if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
+        throw std::runtime_error("Application::initializeCore(): Failed to initialize GLAD");
+
+    const GLubyte* renderer = glGetString(GL_RENDERER);
+    const GLubyte* version  = glGetString(GL_VERSION);
+
+    ELIX_LOG_INFO(reinterpret_cast<const char *>(renderer));
+    ELIX_LOG_INFO(reinterpret_cast<const char *>(version));
+
+    int major, minor;
+    glGetIntegerv(GL_MAJOR_VERSION, &major);
+    glGetIntegerv(GL_MINOR_VERSION, &minor);
+
+    const std::string ver = std::to_string(major) + "." + std::to_string(minor);
+
+    ELIX_LOG_INFO("Context version: ", ver);
+
+#ifdef __APPLE__
+    if (major < 4 || (major == 4 && minor < 1))
+        throw std::runtime_error("OpenGL 4.1+ required on macOS");
+#else
+    if (major < 4 || (major == 4 && minor < 6))
+        throw std::runtime_error("OpenGL 4.6+ required");
+#endif
+}
+
+void elix::Application::shutdownCore()
+{
+    glfwTerminate();
+}
+
+elix::Application* elix::Application::createApplication()
+{
+    const auto app = new elix::Application();
+
+    const auto mainWindow = window::WindowsManager::instance().getCurrentWindow();
+    glfwSetKeyCallback(mainWindow->getOpenGLWindow(), input::KeysManager::keyCallback);
+    glfwSetMouseButtonCallback(mainWindow->getOpenGLWindow(), input::MouseManager::mouseButtonCallback);
+    glfwSetCursorPosCallback(mainWindow->getOpenGLWindow(), input::MouseManager::mouseCallback);
+    glfwSetScrollCallback(mainWindow->getOpenGLWindow(), input::MouseManager::scrollCallback);
+    glfwSetInputMode(mainWindow->getOpenGLWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL); //GLFW_CURSOR_NORMAL | GLFW_CURSOR_DISABLED
+
+#ifdef _WIN32
+    SetProcessDPIAware();
+#endif
+
+#ifdef _DEBUG
+    glEnable(GL_DEBUG_OUTPUT);
+    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    glDebugMessageCallback(glDebugOutput, nullptr);
+    glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE,
+                              GL_DONT_CARE, 0, nullptr, GL_TRUE);
+#endif
+
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDepthFunc(GL_LESS);
+    glEnable(GL_STENCIL_TEST);
+    glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+
+    std::signal(SIGSEGV, signalHandler);
+    std::signal(SIGABRT, signalHandler);
+    std::signal(SIGFPE,  signalHandler);
+    std::signal(SIGTERM, signalHandler);
+
+    // SIGKILL is not available on Windows
+#ifndef _WIN32
+    std::signal(SIGKILL, signalHandler);
+#endif
+
+    std::set_terminate(terminateHandler);
+
+    return app;
 }
 
 elix::Application & elix::Application::instance()
