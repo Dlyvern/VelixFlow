@@ -21,6 +21,7 @@ public:
         SKYBOX = 9,
         EQUIRECTANGULAR_TO_CUBEMAP = 10,
         SHADOW_DEBUG = 11,
+        PARTICLE = 12,
     };
 
     static ShaderManager& instance();

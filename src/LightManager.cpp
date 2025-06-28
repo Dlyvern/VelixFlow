@@ -71,4 +71,3 @@ void LightManager::sendLightsIntoShader(const elix::Shader &shader) const
         shader.setFloat("lights[" + std::to_string(i) + "].outerCutoff", light->outerCutoff);
     }
 }
-

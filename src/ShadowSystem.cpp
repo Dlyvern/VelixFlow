@@ -1,7 +1,7 @@
 #include "ShadowSystem.hpp"
 #include <glad/glad.h>
 #include "Light.hpp"
-#include "MainWindow.hpp"
+#include "Window.hpp"
 #include "Logger.hpp"
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/mat4x4.hpp>
@@ -160,7 +160,7 @@ void elix::ShadowSystem::beginShadowPass(lighting::Light* light)
 
     // window::MainWindow::setViewport(0, 0, resolution, resolution);
 
-    window::MainWindow::clear(window::ClearFlag::DEPTH_BUFFER_BIT);
+    window::Window::clear(window::ClearFlag::DEPTH_BUFFER_BIT);
 
     // window::MainWindow::setCullMode(window::CullMode::FRONT);
 }
@@ -173,9 +173,52 @@ void elix::ShadowSystem::endShadowPass()
 
     // window::MainWindow::setCullMode(window::CullMode::BACK);
 
-    window::MainWindow::clear(window::ClearFlag::COLOR_BUFFER_BIT | window::ClearFlag::DEPTH_BUFFER_BIT);
+    window::Window::clear(window::ClearFlag::COLOR_BUFFER_BIT | window::ClearFlag::DEPTH_BUFFER_BIT);
 }
 
+elix::ShadowSystem::Shadow elix::ShadowSystem::createShadowCubeFramebuffer()
+{
+    unsigned int fbo;
+    unsigned int shadowMap;
+
+
+    glGenFramebuffers(1, &fbo);
+    glGenTextures(1, &shadowMap);
+
+    glBindTexture(GL_TEXTURE_CUBE_MAP, shadowMap);
+
+    int resolution = getResolutionBasedOnQuality(m_quality);
+
+    for(unsigned int i = 0; i < 6; ++i)
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, resolution, resolution, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+   
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, shadowMap, 0);
+
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    {
+        ELIX_LOG_ERROR("Shadow buffer is not complete");
+        glDeleteFramebuffers(1, &fbo);
+        glDeleteTextures(1, &shadowMap);
+        return {};
+    }
+
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    Shadow shadow;
+    shadow.fbo = fbo;
+    shadow.shadowMap = shadowMap;
+
+    return shadow;
+}
 
 int elix::ShadowSystem::getResolutionBasedOnQuality(elix::ShadowSystem::ShadowQuality quality)
 {
@@ -223,7 +266,14 @@ void elix::ShadowSystem::init(const std::vector<lighting::Light*>& lights, Shado
 
     for(const auto& light : lights)
     {
-        m_shadowData[light->id] = createShadowFramebuffer();
+        Shadow newShadow;
+
+        if(light->type == lighting::LightType::POINT)
+            newShadow = createShadowCubeFramebuffer();
+        else
+            newShadow = createShadowFramebuffer();
+
+        m_shadowData[light->id] = newShadow;
         updateLightMatrix(light);
         ELIX_LOG_INFO("Inittialized shadow with light id: ", light->id);
     }

@@ -1,28 +1,24 @@
 #include "DebugTextHolder.hpp"
 
-#include "Filesystem.hpp"
-#include "WindowsManager.hpp"
-
 debug::DebugTextHolder& debug::DebugTextHolder::instance()
 {
     static debug::DebugTextHolder instance;
     return instance;
 }
 
-unsigned int debug::DebugTextHolder::addText(const std::string &text)
+unsigned int debug::DebugTextHolder::addText(const std::string &text, const std::string& fontPath)
 {
     Text debugText;
-    const std::string font_name = filesystem::getFontsFolderPath().string() + "/ghostmane_font.ttf";
 
     debugText.setText(text);
-    debugText.setFont(font_name);
+    debugText.setFont(fontPath);
     debugText.setScale(0.5f);
 
     glm::vec2 position;
 
     position.x = 0.0f;
 
-    position.y = (!m_texts.empty() ? m_texts.back().getY() : window::WindowsManager::instance().getCurrentWindow()->getHeight()) - m_margin;
+    // position.y = (!m_texts.empty() ? m_texts.back().getY() : window::WindowsManager::instance().getCurrentWindow()->getHeight()) - m_margin;
 
     debugText.setPosition(position.x, position.y);
 

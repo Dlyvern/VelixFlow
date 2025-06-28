@@ -3,8 +3,6 @@
 
 #include <glad/glad.h>
 #include <glm/ext/matrix_clip_space.hpp>
-#include "WindowsManager.hpp"
-#include "Filesystem.hpp"
 #include "ShaderManager.hpp"
 
 Text::Text()
@@ -18,9 +16,9 @@ Text::Text()
 
     const auto shader = ShaderManager::instance().getShader(ShaderManager::ShaderType::TEXT);
 
-    const glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(window::WindowsManager::instance().getCurrentWindow()->getWidth()), 0.0f, static_cast<float>(window::WindowsManager::instance().getCurrentWindow()->getHeight()));
+    // const glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(window::WindowsManager::instance().getCurrentWindow()->getWidth()), 0.0f, static_cast<float>(window::WindowsManager::instance().getCurrentWindow()->getHeight()));
     shader->bind();
-    shader->setMat4("projection", projection);
+    // shader->setMat4("projection", projection);
 }
 
 void Text::draw()

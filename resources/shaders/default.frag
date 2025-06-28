@@ -54,18 +54,30 @@ uniform sampler2D shadowMaps[MAX_LIGHTS];
 
 uniform samplerCube pointShadowMaps[MAX_LIGHTS];
 
-
 float PointLightShadow(vec3 fragPos, Light light, samplerCube depthMap)
 {
     vec3 fragToLight = fragPos - light.position;
     float currentDepth = length(fragToLight);
-    float closestDepth = texture(depthMap, fragToLight).r * light.farPlane;
+    float shadow = 0.0;
+    float bias = 0.05;
+    int samples = 20;
+    float offset = 0.15;
 
-    float bias = 0.15;
-    float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
+    for(int i = 0; i < samples; ++i)
+    {
+        vec3 sampleOffsetDir = normalize(fragToLight) + offset * normalize(vec3(
+            fract(sin(float(i) * 12.9898) * 43758.5453),
+            fract(cos(float(i) * 78.233) * 12345.6789),
+            fract(sin(float(i) * 91.5321) * 4321.8765)
+        ));
+        float closestDepth = texture(depthMap, sampleOffsetDir).r * light.farPlane;
+        if(currentDepth - bias > closestDepth)
+            shadow += 1.0;
+    }
 
+    shadow /= float(samples);
     return shadow;
-}
+    }
 
 float ShadowCalculation(vec4 fragPosLightSpace, vec3 lightDir, sampler2D shadowMapToUse)
 {
@@ -206,8 +218,8 @@ vec3 calculatePointLight(Light light, vec3 albedo, float roughness, float metall
     specular *= attenuation;
 
     float shadow = PointLightShadow(fs_in.FragPos, light, pointShadowMaps[index]);
-    //    diffuse *= (1.0 - shadow);
-    //    specular *= (1.0 - shadow);
+    // diffuse *= (1.0 - shadow);
+    // specular *= (1.0 - shadow);
 
     return ambient + diffuse + specular;
 }
@@ -226,11 +238,11 @@ void main()
         Light lightV = lights[i];
 
         if (lightV.type == LIGHT_TYPE_DIRECTIONAL)
-        result += calculateDirectionalLight(lightV, albedo, roughness, metallic, ao, i);
+            result += calculateDirectionalLight(lightV, albedo, roughness, metallic, ao, i);
         else if (lightV.type == LIGHT_TYPE_SPOT)
-        result += calculateSpotLight(lightV, albedo, roughness, metallic, ao, i);
+            result += calculateSpotLight(lightV, albedo, roughness, metallic, ao, i);
         else if (lightV.type == LIGHT_TYPE_POINT)
-        result += calculatePointLight(lightV, albedo, roughness, metallic, ao, i);
+            result += calculatePointLight(lightV, albedo, roughness, metallic, ao, i);
     }
 
     FragColor = vec4(result, 1.0);

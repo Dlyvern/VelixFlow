@@ -64,8 +64,6 @@ public:
     }
 
     virtual ~GameObject();
-
-    std::unordered_map<int, Material*> overrideMaterials;
 private:
     glm::mat4 m_transformMatrix;
     bool m_isTransformMatrixDirty{true};

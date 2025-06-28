@@ -17,8 +17,6 @@ namespace elix
 
         void addAnimation(common::Animation* animation);
 
-        void drawWithMaterials(std::unordered_map<int, Material*>& materials) const;
-
         [[nodiscard]] common::Animation* getAnimation(int index) const;
         [[nodiscard]] common::Animation* getAnimation(const std::string& name) const;
         [[nodiscard]] const std::vector<common::Animation*>& getAnimations() const;

@@ -22,11 +22,19 @@ namespace elix
             DEPTH_STENCIL,
         };
 
-        void create(int width, int height, InternalFormat format);
+        void create(int width, int height, InternalFormat format, bool texture = false);
+
+        unsigned int getTexture(int index) const;
 
         void addTextureId(unsigned int id);
 
         void addAttachment(Attachment attachment);
+
+        int getWidth() const;
+
+        int getHeight() const;
+
+        void resize(int newWidth, int newHeight);
 
         void bind() const;
 

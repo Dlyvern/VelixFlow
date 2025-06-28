@@ -24,7 +24,8 @@ namespace window
     {
         COLOR_BUFFER_BIT = 1 << 0,
         DEPTH_BUFFER_BIT = 1 << 1,
-        STENCIL_BUFFER_BIT = 1 << 2
+        STENCIL_BUFFER_BIT = 1 << 2,
+        NONE = 0 << 0
     };
 
     enum class CullMode : uint8_t
@@ -45,10 +46,10 @@ namespace window
     constexpr WindowData FULLSCREEN_WINDOW_DATA{1920, 1080, WindowMode::FULLSCREEN};
     constexpr WindowData WINDOWED_WINDOW_DATA{800, 600, WindowMode::WINDOWED};
 
-    class MainWindow
+    class Window
     {
     public:
-        explicit MainWindow(const std::string& windowTitle = "DefaultWindow", const WindowData& windowData = FULLSCREEN_WINDOW_DATA);
+        explicit Window(const std::string& windowTitle = "DefaultWindow", const WindowData& windowData = FULLSCREEN_WINDOW_DATA);
 
         [[nodiscard]] bool isWindowOpened() const;
         [[nodiscard]] int getHeight() const;
@@ -77,16 +78,19 @@ namespace window
 
         void setSize(int width, int height);
 
+
+        static void setVsync(bool enabled);
+
     private:
         GLFWwindow* m_window{nullptr};
         WindowData m_currentWindowData{window::FULLSCREEN_WINDOW_DATA};
         bool m_hasFocus{false};
 
 
-        static int viewportX;
-        static int viewportY;
-        static int viewportWidth;
-        static int viewportHeight;
+        static inline int viewportX;
+        static inline int viewportY;
+        static inline int viewportWidth;
+        static inline int viewportHeight;
 
 
         

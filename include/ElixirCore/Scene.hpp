@@ -4,6 +4,8 @@
 #include "Drawable.hpp"
 #include "GameObject.hpp"
 #include "Skybox.hpp"
+#include "AssetsCache.hpp"
+
 
 class Scene
 {
@@ -30,6 +32,8 @@ public:
 
     const std::vector<std::shared_ptr<Drawable>>& getDrawables();
 
+    void saveSceneToFile(const std::string& filePath);
+    void loadSceneFromFile(const std::string& filePath, elix::AssetsCache& cache);
 private:
     std::vector<std::shared_ptr<GameObject>> m_objects;
     std::vector<std::shared_ptr<Drawable>> m_drawables;

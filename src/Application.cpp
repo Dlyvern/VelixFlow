@@ -1,3 +1,5 @@
+#include <glad/glad.h>
+
 #include "Application.hpp"
 
 #ifdef _WIN32
@@ -6,15 +8,64 @@
 #endif
 
 #include <stdexcept>
-#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 #include "Keyboard.hpp"
 #include "Mouse.hpp"
-#include "WindowsManager.hpp"
 #include "Logger.hpp"
 #include <csignal>
 #include <cstdlib>
+#include "Physics.hpp"
+
+float elix::Application::getDeltaTime() const
+{
+    return m_deltaTime;
+}
+
+elix::Renderer* elix::Application::getRenderer() const
+{
+    return m_renderer.get();
+}
+
+elix::CameraComponent* elix::Application::getCamera() const
+{
+    return m_camera.get();
+}
+
+Scene* elix::Application::getScene() const
+{
+    return m_scene.get();
+}
+
+void elix::Application::update()
+{
+    const float currentFrame = window::Window::getTime();
+    m_deltaTime = currentFrame - m_lastFrame;
+    m_lastFrame = currentFrame;
+
+    window::Window::pollEvents();
+
+    m_camera->update(m_deltaTime);
+
+    physics::PhysicsController::instance().simulate(m_deltaTime);
+
+    m_scene->update(m_deltaTime);
+
+}
+void elix::Application::endRender()
+{
+    m_mainWindow->swapBuffers();
+}
+
+void elix::Application::render()
+{
+    if(!m_scene)
+        return;
+    
+    const auto& frameData = m_renderer->updateFrameData(m_camera.get());
+
+    m_renderer->renderAll(frameData, m_scene.get());
+}
 
 #ifndef _WIN32
     #include <execinfo.h>
@@ -91,7 +142,26 @@ void terminateHandler()
     std::abort();
 }
 
-void elix::Application::initializeCore()
+void elix::Application::shutdownCore()
+{
+    glfwTerminate();
+}
+
+elix::Application* elix::Application::createApplication()
+{
+    const auto app = new elix::Application();
+
+    app->init();
+
+    return app;
+}
+
+window::Window* elix::Application::getWindow() const
+{
+    return m_mainWindow.get();
+}
+
+void elix::Application::init()
 {
     if (!glfwInit())
         throw std::runtime_error("Application::initializeCore(): Failed to initialize glfw");
@@ -109,7 +179,7 @@ void elix::Application::initializeCore()
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
-    window::WindowsManager::instance().setCurrentWindow(window::WindowsManager::instance().createWindow());
+    m_mainWindow = std::make_unique<window::Window>();
 
     if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
         throw std::runtime_error("Application::initializeCore(): Failed to initialize GLAD");
@@ -135,118 +205,12 @@ void elix::Application::initializeCore()
     if (major < 4 || (major == 4 && minor < 6))
         throw std::runtime_error("OpenGL 4.6+ required");
 #endif
-}
-
-void elix::Application::shutdownCore()
-{
-    glfwTerminate();
-}
-
-elix::Application* elix::Application::createApplication()
-{
-    const auto app = new elix::Application();
-
-    const auto mainWindow = window::WindowsManager::instance().getCurrentWindow();
-    glfwSetKeyCallback(mainWindow->getOpenGLWindow(), input::KeysManager::keyCallback);
-    glfwSetMouseButtonCallback(mainWindow->getOpenGLWindow(), input::MouseManager::mouseButtonCallback);
-    glfwSetCursorPosCallback(mainWindow->getOpenGLWindow(), input::MouseManager::mouseCallback);
-    glfwSetScrollCallback(mainWindow->getOpenGLWindow(), input::MouseManager::scrollCallback);
-    glfwSetInputMode(mainWindow->getOpenGLWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL); //GLFW_CURSOR_NORMAL | GLFW_CURSOR_DISABLED
-
-#ifdef _WIN32
-    SetProcessDPIAware();
-#endif
-
-#ifdef _DEBUG
-    glEnable(GL_DEBUG_OUTPUT);
-    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-    glDebugMessageCallback(glDebugOutput, nullptr);
-    glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE,
-                              GL_DONT_CARE, 0, nullptr, GL_TRUE);
-#endif
-
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDepthFunc(GL_LESS);
-    glEnable(GL_STENCIL_TEST);
-    glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-
-    std::signal(SIGSEGV, signalHandler);
-    std::signal(SIGABRT, signalHandler);
-    std::signal(SIGFPE,  signalHandler);
-    std::signal(SIGTERM, signalHandler);
-
-    // SIGKILL is not available on Windows
-#ifndef _WIN32
-    std::signal(SIGKILL, signalHandler);
-#endif
-
-    std::set_terminate(terminateHandler);
-
-    return app;
-}
-
-elix::Application & elix::Application::instance()
-{
-    static Application instance;
-    return instance;
-}
-
-void elix::Application::init()
-{
-    if (!glfwInit())
-        throw std::runtime_error("Application::init(): Failed to initialize glfw");
-
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-#ifdef __APPLE__
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-#else
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
-    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-
-    window::WindowsManager::instance().setCurrentWindow(window::WindowsManager::instance().createWindow());
-
-    if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
-        throw std::runtime_error("Application::init(): Failed to initialize GLAD");
-
-    const GLubyte* renderer = glGetString(GL_RENDERER);
-    const GLubyte* version  = glGetString(GL_VERSION);
-
-    ELIX_LOG_INFO(reinterpret_cast<const char *>(renderer));
-    ELIX_LOG_INFO(reinterpret_cast<const char *>(version));
-
-    int major, minor;
-    glGetIntegerv(GL_MAJOR_VERSION, &major);
-    glGetIntegerv(GL_MINOR_VERSION, &minor);
-
-    const std::string ver = std::to_string(major) + "." + std::to_string(minor);
-
-    ELIX_LOG_INFO("Context version: ", ver);
-
-#ifdef __APPLE__
-    if (major < 4 || (major == 4 && minor < 1))
-        throw std::runtime_error("OpenGL 4.1+ required on macOS");
-#else
-    if (major < 4 || (major == 4 && minor < 6))
-        throw std::runtime_error("OpenGL 4.6+ required");
-#endif
-
-
-    auto mainWindow = window::WindowsManager::instance().getCurrentWindow();
-    glfwSetKeyCallback(mainWindow->getOpenGLWindow(), input::KeysManager::keyCallback);
-    glfwSetMouseButtonCallback(mainWindow->getOpenGLWindow(), input::MouseManager::mouseButtonCallback);
-    glfwSetCursorPosCallback(mainWindow->getOpenGLWindow(), input::MouseManager::mouseCallback);
-    glfwSetScrollCallback(mainWindow->getOpenGLWindow(), input::MouseManager::scrollCallback);
-    glfwSetInputMode(mainWindow->getOpenGLWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL); //GLFW_CURSOR_NORMAL | GLFW_CURSOR_DISABLED
+    
+    glfwSetKeyCallback(m_mainWindow->getOpenGLWindow(), input::KeysManager::keyCallback);
+    glfwSetMouseButtonCallback(m_mainWindow->getOpenGLWindow(), input::MouseManager::mouseButtonCallback);
+    glfwSetCursorPosCallback(m_mainWindow->getOpenGLWindow(), input::MouseManager::mouseCallback);
+    glfwSetScrollCallback(m_mainWindow->getOpenGLWindow(), input::MouseManager::scrollCallback);
+    glfwSetInputMode(m_mainWindow->getOpenGLWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL); //GLFW_CURSOR_NORMAL | GLFW_CURSOR_DISABLED
 
 #ifdef _WIN32
     SetProcessDPIAware();
@@ -279,10 +243,11 @@ void elix::Application::init()
     std::signal(SIGKILL, signalHandler);
 #endif
 
-     std::set_terminate(terminateHandler);
-}
+    std::set_terminate(terminateHandler);
 
-void elix::Application::shutdown()
-{
-    glfwTerminate();
+    m_renderer = std::make_unique<elix::Renderer>();
+    m_camera = std::make_unique<elix::CameraComponent>();
+    m_scene = std::make_unique<Scene>();
+
+    physics::PhysicsController::instance().init();
 }

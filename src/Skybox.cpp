@@ -11,7 +11,7 @@
 
 #include "DrawCall.hpp"
 #include "FrameBuffer.hpp"
-#include "MainWindow.hpp"
+#include "Window.hpp"
 #include "ShaderManager.hpp"
 
 elix::Skybox::Skybox() = default;
@@ -88,7 +88,7 @@ void elix::Skybox::init(const std::vector<std::string> &faces)
 
 void elix::Skybox::render(const glm::mat4& view, const glm::mat4& projection) const
 {
-    window::MainWindow::setDepthFunc(true);
+    window::Window::setDepthFunc(true);
 
     const auto shader = ShaderManager::instance().getShader(ShaderManager::ShaderType::SKYBOX);
 
@@ -102,7 +102,7 @@ void elix::Skybox::render(const glm::mat4& view, const glm::mat4& projection) co
     glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubeMapTextureId);
     elix::DrawCall::drawArrays(elix::DrawCall::DrawMode::TRIANGLES, 0, 36);
     m_vertexArray.unbind();
-    window::MainWindow::setDepthFunc(false);
+    window::Window::setDepthFunc(false);
 }
 
 void elix::Skybox::loadFromHDR(const std::string &path)
@@ -143,10 +143,8 @@ void elix::Skybox::loadFromHDR(const std::string &path)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     elix::FrameBuffer frameBuffer;
-    frameBuffer.create(CUBE_MAP_SIZE, CUBE_MAP_SIZE, elix::FrameBuffer::InternalFormat::DEPTH24);
     frameBuffer.addAttachment(elix::FrameBuffer::Attachment::DEPTH);
-
-
+    frameBuffer.create(CUBE_MAP_SIZE, CUBE_MAP_SIZE, elix::FrameBuffer::InternalFormat::DEPTH24);
 
     glGenTextures(1, &m_cubeMapTextureId);
     glBindTexture(GL_TEXTURE_CUBE_MAP, m_cubeMapTextureId);
@@ -180,7 +178,7 @@ void elix::Skybox::loadFromHDR(const std::string &path)
     convertShader->setMat4("projection", captureProjection);
 
 
-    window::MainWindow::setViewport(0, 0, CUBE_MAP_SIZE, CUBE_MAP_SIZE);
+    window::Window::setViewport(0, 0, CUBE_MAP_SIZE, CUBE_MAP_SIZE);
 
     frameBuffer.bind();
 
@@ -189,7 +187,7 @@ void elix::Skybox::loadFromHDR(const std::string &path)
         convertShader->setMat4("view", captureViews[i]);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_cubeMapTextureId, 0);
 
-        window::MainWindow::clear(window::ClearFlag::COLOR_BUFFER_BIT | window::ClearFlag::DEPTH_BUFFER_BIT);
+        window::Window::clear(window::ClearFlag::COLOR_BUFFER_BIT | window::ClearFlag::DEPTH_BUFFER_BIT);
 
         m_vertexArray.bind();
         elix::DrawCall::drawArrays(elix::DrawCall::DrawMode::TRIANGLES, 0, 36);

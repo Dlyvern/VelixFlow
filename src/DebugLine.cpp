@@ -1,8 +1,7 @@
 #include "DebugLine.hpp"
 #include "DrawCall.hpp"
-#include "Filesystem.hpp"
-#include "WindowsManager.hpp"
 #include "ShaderManager.hpp"
+#include "Window.hpp"
 
 elix::debug::DebugLine::DebugLine()
 {
@@ -12,7 +11,7 @@ elix::debug::DebugLine::DebugLine()
 
 void elix::debug::DebugLine::draw(const glm::vec3 &from, const glm::vec3 &to, const glm::mat4 &view, const glm::mat4 &projection)
 {
-    window::MainWindow::lineWidth(m_lineWidth);
+    window::Window::lineWidth(m_lineWidth);
 
     const float vertices[] = {
         from.x, from.y, from.z,

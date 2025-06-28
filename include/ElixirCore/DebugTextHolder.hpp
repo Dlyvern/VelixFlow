@@ -9,7 +9,7 @@ namespace debug
     {
     public:
         static DebugTextHolder& instance();
-        unsigned int addText(const std::string& text);
+        unsigned int addText(const std::string& text, const std::string& fontPath);
         void changeText(unsigned int index, const std::string& text);
         void update(float deltaTime);
         void clear();

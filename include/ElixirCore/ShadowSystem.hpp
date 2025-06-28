@@ -28,7 +28,6 @@ namespace elix
 		};
 
 		const Shadow& getShadowData(lighting::Light* light) const;
-       
 
         glm::mat4 getLightMatrix(lighting::Light* light) const;
 
@@ -44,7 +43,7 @@ namespace elix
 		void init(const std::vector<lighting::Light*>& lights, ShadowQuality shadowQuality = ShadowQuality::ULTRA);
 	private:
         Shadow createShadowFramebuffer();
-	   
+        Shadow createShadowCubeFramebuffer();	   
         ShadowQuality m_quality;
 
         std::map<unsigned int, Shadow> m_shadowData;

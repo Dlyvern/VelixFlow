@@ -1,5 +1,4 @@
 #include "ShaderManager.hpp"
-#include "Filesystem.hpp"
 #include "Skeleton.hpp"
 #include "EmbeddedShaders.hpp"
 #include <iostream>
@@ -38,4 +37,5 @@ void ShaderManager::preLoadShaders()
     m_shaders[SKELETON_STENCIL] = createShader(shader_skeleton_vert, shader_stencil_frag);
     m_shaders[SKYBOX] = createShader(shader_skybox_vert, shader_skybox_frag);
     m_shaders[EQUIRECTANGULAR_TO_CUBEMAP] = createShader(shader_equirectangular_to_cubemap_vert, shader_equirectangular_to_cubemap_frag);
+    m_shaders[PARTICLE] = createShader(shader_particle_vert, shader_particle_frag);
 }

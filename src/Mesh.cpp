@@ -51,13 +51,3 @@ void elix::Mesh::draw() const
     elix::DrawCall::draw(elix::DrawCall::DrawMode::TRIANGLES, m_indicesCount, elix::DrawCall::DrawType::UNSIGNED_INT, nullptr);
     m_vertexArray.unbind();
 }
-
-void elix::Mesh::setMaterial(Material *material)
-{
-    m_material = material;
-}
-
-Material * elix::Mesh::getMaterial() const
-{
-    return m_material;
-}
