@@ -5,15 +5,16 @@
 
 #include "Component.hpp"
 #include "Light.hpp"
+#include <memory>
 
 class LightComponent final : public Component
 {
 public:
-    explicit LightComponent(const lighting::Light& light);
+    explicit LightComponent(const std::shared_ptr<lighting::Light>& light);
 
     void update(float deltaTime) override;
 
-    lighting::Light* getLight();
+    std::shared_ptr<lighting::Light> getLight();
     
     void setLocalOffset(const glm::vec3& offset);
 
@@ -25,7 +26,7 @@ public:
 
     void destroy() override;
 private:
-    lighting::Light m_light{};
+    std::shared_ptr<lighting::Light> m_light{};
     glm::vec3 m_localOffset{0.0f, 0.0f, 0.0f};
     void updateLightTransform();
     void onTransformationOwnerChanged(const glm::mat4& transformation);

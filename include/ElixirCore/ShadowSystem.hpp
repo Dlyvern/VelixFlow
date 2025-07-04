@@ -6,6 +6,7 @@
 #include <map>
 #include <vector>
 #include <map>
+#include <memory>
 
 namespace elix
 {
@@ -40,7 +41,7 @@ namespace elix
 
         void endShadowPass();
 
-		void init(const std::vector<lighting::Light*>& lights, ShadowQuality shadowQuality = ShadowQuality::ULTRA);
+		void init(const std::vector<std::shared_ptr<lighting::Light>>& lights, ShadowQuality shadowQuality = ShadowQuality::ULTRA);
 	private:
         Shadow createShadowFramebuffer();
         Shadow createShadowCubeFramebuffer();	   

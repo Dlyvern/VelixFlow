@@ -260,7 +260,7 @@ void elix::ShadowSystem::updateLightMatrix(lighting::Light* light)
         shadowData.lightMatrix = calculateSpotLightMatrix(light);
 }
 
-void elix::ShadowSystem::init(const std::vector<lighting::Light*>& lights, ShadowQuality quality)
+void elix::ShadowSystem::init(const std::vector<std::shared_ptr<lighting::Light>>& lights, ShadowQuality quality)
 {
     m_quality = quality;
 
@@ -274,7 +274,7 @@ void elix::ShadowSystem::init(const std::vector<lighting::Light*>& lights, Shado
             newShadow = createShadowFramebuffer();
 
         m_shadowData[light->id] = newShadow;
-        updateLightMatrix(light);
+        updateLightMatrix(light.get());
         ELIX_LOG_INFO("Inittialized shadow with light id: ", light->id);
     }
 

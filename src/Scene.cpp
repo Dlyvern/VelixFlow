@@ -4,20 +4,25 @@
 #include "AnimatorComponent.hpp"
 #include "Light.hpp"
 #include "LightComponent.hpp"
-#include "LightManager.hpp"
 #include "Logger.hpp"
 #include "MeshComponent.hpp"
 #include "RigidbodyComponent.hpp"
-#include "ScriptsRegister.hpp"
-
-Scene::Scene() = default;
-
-Scene::~Scene() = default;
+#include "ScriptComponent.hpp"
 
 void Scene::update(float deltaTime)
 {
     for (const auto& object : m_objects)
         object->update(deltaTime);
+}
+
+const std::vector<std::shared_ptr<lighting::Light>>& Scene::getLights() const
+{
+    return m_lights;
+}
+
+void Scene::addLight(const std::shared_ptr<lighting::Light>& light)
+{
+    m_lights.push_back(light);
 }
 
 void Scene::setSkybox(const std::shared_ptr<elix::Skybox> &skybox)
@@ -126,7 +131,7 @@ void Scene::saveSceneToFile(const std::string &filePath)
         {
             nlohmann::json lightJson;
 
-            auto* light = object->getComponent<LightComponent>()->getLight();
+            auto light = object->getComponent<LightComponent>()->getLight();
 
             lightJson["type"] = "LightComponent";
             lightJson["lightType"] = static_cast<int>(light->type);
@@ -297,17 +302,18 @@ void Scene::loadSceneFromFile(const std::string &filePath, elix::AssetsCache& ca
                 //TODO make it more safe, Cause it sucks...
                 if (componentJson["type"] == "LightComponent")
                 {
-                    lighting::Light light;
-                    light.type = static_cast<lighting::LightType>(componentJson["lightType"]);
+                    auto light = std::make_shared<lighting::Light>();
+                    light->type = static_cast<lighting::LightType>(componentJson["lightType"]);
                     const auto& direction = componentJson["direction"];
-                    light.direction = glm::vec3(direction[0], direction[1], direction[2]);
+                    light->direction = glm::vec3(direction[0], direction[1], direction[2]);
                     const auto& position = componentJson["position"];
-                    light.position = glm::vec3(position[0], position[1], position[2]);
+                    light->position = glm::vec3(position[0], position[1], position[2]);
                     const auto& color = componentJson["color"];
-                    light.color = glm::vec3(color[0], color[1], color[2]);
-                    light.strength = componentJson["strength"];
-                    light.radius = componentJson["radius"];
+                    light->color = glm::vec3(color[0], color[1], color[2]);
+                    light->strength = componentJson["strength"];
+                    light->radius = componentJson["radius"];
                     gameObject->addComponent<LightComponent>(light);
+                    addLight(light);
                 }
                 else if (componentJson["type"] == "AnimatorComponent")
                 {

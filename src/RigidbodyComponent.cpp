@@ -9,7 +9,7 @@ RigidbodyComponent::RigidbodyComponent(const std::shared_ptr<GameObject> &object
     if (!m_rigidActor)
         std::cerr << "RigidbodyComponent::RigidbodyComponent(): Failed to create physics body actor" << std::endl;
 
-    object->setPositionChangedCallback(std::bind(&RigidbodyComponent::onOwnerPositionChanged, this, std::placeholders::_1));
+    object->positionChanged.connect(std::bind(&RigidbodyComponent::onOwnerPositionChanged, this, std::placeholders::_1));
 }
 
 void RigidbodyComponent::update(float deltaTime)
@@ -44,6 +44,5 @@ void RigidbodyComponent::onOwnerPositionChanged(const glm::vec3& position)
 {
     if (!m_rigidActor)
         return;
-
     m_rigidActor->setGlobalPose({position.x, position.y, position.z});
 }

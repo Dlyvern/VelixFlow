@@ -39,6 +39,8 @@ set(ASSIMP_ROOT ${CMAKE_SOURCE_DIR}/external/assimp)
 set(GLAD_ROOT ${CMAKE_SOURCE_DIR}/external/glad)
 set(FREETYPE_ROOT ${CMAKE_SOURCE_DIR}/external/freetype)
 set(LIBZ_ROOT ${CMAKE_SOURCE_DIR}/external/libz)
+set(FMOD_ROOT ${CMAKE_SOURCE_DIR}/external/fmod)
+
 
 option(ELIXIR_USE_PHYSX "Enable NVIDIA PhysX support" ON)
 
@@ -238,6 +240,9 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         $<BUILD_INTERFACE:${FREETYPE_ROOT}/include/>
         $<INSTALL_INTERFACE:include/ElixirCore/freetype>
 
+        $<BUILD_INTERFACE:${FMOD_ROOT}/include/>
+        $<INSTALL_INTERFACE:include/ElixirCore/fmod>
+
         $<BUILD_INTERFACE:${ASSIMP_ROOT}/include/>
         $<INSTALL_INTERFACE:include/ElixirCore/assimp>
 
@@ -286,6 +291,7 @@ elseif(ELIXIR_PLATFORM_MACOS)
             ${GLFW_ROOT}/lib/linux/libglfw3.a
             ${ASSIMP_ROOT}/lib/linux/libassimp.a
             assimp
+            ${FMOD_ROOT}/lib/linux/libfmod.so.14.8
             ${FREETYPE_ROOT}/lib/linux/libfreetype.a
             ${LIBZ_ROOT}/lib/linux/libz.a
             ${COCOA_LIBRARY}
@@ -306,6 +312,7 @@ else()
             -Wl,--end-group
             OpenGL::OpenGL
             ${GLFW_ROOT}/lib/linux/libglfw3.a
+            ${FMOD_ROOT}/lib/linux/libfmod.so.14.8
 #            ${ASSIMP_ROOT}/lib/linux/libassimp.a
             assimp
             ${FREETYPE_ROOT}/lib/linux/libfreetype.a
@@ -371,6 +378,13 @@ if(ELIXIR_PLATFORM_WINDOWS)
 
 endif()
 
+if(ELIXIR_PLATFORM_LINUX)
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        BUILD_RPATH "${FMOD_ROOT}/lib/linux"
+        INSTALL_RPATH "$ORIGIN"
+    )
+endif()
+
 install(DIRECTORY include/ DESTINATION include)
 install(DIRECTORY ${PHYSX_ROOT}/include/ DESTINATION include/ElixirCore/PhysX)
 install(DIRECTORY ${GLM_ROOT}/include/ DESTINATION include/ElixirCore/glm)
@@ -378,6 +392,10 @@ install(DIRECTORY ${GLFW_ROOT}/include/ DESTINATION include/ElixirCore/glfw)
 install(DIRECTORY ${ASSIMP_ROOT}/include/ DESTINATION include/ElixirCore/assimp)
 install(DIRECTORY ${GLAD_ROOT}/include/ DESTINATION include/ElixirCore/glad)
 install(DIRECTORY ${FREETYPE_ROOT}/include/ DESTINATION include/ElixirCore/freetype)
+install(DIRECTORY ${FMOD_ROOT}/include/ DESTINATION include/ElixirCore/fmod)
+
+
+
 
 # === Install CMake Config Package ===
 install(EXPORT ElixirCoreTargets

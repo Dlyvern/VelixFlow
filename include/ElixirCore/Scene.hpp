@@ -5,20 +5,20 @@
 #include "GameObject.hpp"
 #include "Skybox.hpp"
 #include "AssetsCache.hpp"
-
+#include "Light.hpp"
 
 class Scene
 {
 public:
-    Scene();
-
-    virtual ~Scene();
-
     void update(float deltaTime);
 
     void setSkybox(const std::shared_ptr<elix::Skybox>& skybox);
 
     std::shared_ptr<elix::Skybox> getSkybox() const;
+
+    const std::vector<std::shared_ptr<lighting::Light>>& getLights() const;
+
+    void addLight(const std::shared_ptr<lighting::Light>& light);
 
     void addGameObject(const std::shared_ptr<GameObject>& gameObject);
 
@@ -35,6 +35,7 @@ public:
     void saveSceneToFile(const std::string& filePath);
     void loadSceneFromFile(const std::string& filePath, elix::AssetsCache& cache);
 private:
+    std::vector<std::shared_ptr<lighting::Light>> m_lights;   
     std::vector<std::shared_ptr<GameObject>> m_objects;
     std::vector<std::shared_ptr<Drawable>> m_drawables;
     std::shared_ptr<elix::Skybox> m_skybox;

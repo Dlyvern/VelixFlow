@@ -38,4 +38,5 @@ void ShaderManager::preLoadShaders()
     m_shaders[SKYBOX] = createShader(shader_skybox_vert, shader_skybox_frag);
     m_shaders[EQUIRECTANGULAR_TO_CUBEMAP] = createShader(shader_equirectangular_to_cubemap_vert, shader_equirectangular_to_cubemap_frag);
     m_shaders[PARTICLE] = createShader(shader_particle_vert, shader_particle_frag);
+    m_shaders[BILLBOARD] = createShader(shader_billboard_vert, shader_billboard_frag);
 }

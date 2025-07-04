@@ -20,8 +20,8 @@ namespace elix
 
         static void shutdownCore();
 
-        static Application* createApplication();
-
+        static std::unique_ptr<Application> createApplication();
+        
         void init();
 
         float getDeltaTime() const;

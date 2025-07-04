@@ -7,6 +7,11 @@
     #include <dbghelp.h>
 #endif
 
+#ifndef _WIN32
+    #include <execinfo.h>
+    #include <dlfcn.h>
+#endif
+
 #include <stdexcept>
 #include <GLFW/glfw3.h>
 
@@ -16,6 +21,7 @@
 #include <csignal>
 #include <cstdlib>
 #include "Physics.hpp"
+#include "AudioSystem.hpp"
 
 float elix::Application::getDeltaTime() const
 {
@@ -45,9 +51,9 @@ void elix::Application::update()
 
     window::Window::pollEvents();
 
-    m_camera->update(m_deltaTime);
-
     physics::PhysicsController::instance().simulate(m_deltaTime);
+    
+    m_camera->update(m_deltaTime);
 
     m_scene->update(m_deltaTime);
 
@@ -66,12 +72,6 @@ void elix::Application::render()
 
     m_renderer->renderAll(frameData, m_scene.get());
 }
-
-#ifndef _WIN32
-    #include <execinfo.h>
-    #include <dlfcn.h>
-#endif
-
 
 #ifdef _DEBUG
 void GLAPIENTRY glDebugOutput(GLenum source, GLenum type, GLuint id, GLenum severity,
@@ -125,6 +125,7 @@ void signalHandler(int signal)
 
     free(strings);
 #else
+    //It should not happened.... Maybe...
     ELIX_LOG_ERROR("Signal %d received. (No backtrace on this platform)", signal);
 #endif
 
@@ -144,16 +145,17 @@ void terminateHandler()
 
 void elix::Application::shutdownCore()
 {
+
     glfwTerminate();
 }
 
-elix::Application* elix::Application::createApplication()
+std::unique_ptr<elix::Application> elix::Application::createApplication()
 {
-    const auto app = new elix::Application();
+    auto app = std::make_unique<elix::Application>();
 
     app->init();
 
-    return app;
+    return std::move(app);
 }
 
 window::Window* elix::Application::getWindow() const
@@ -250,4 +252,6 @@ void elix::Application::init()
     m_scene = std::make_unique<Scene>();
 
     physics::PhysicsController::instance().init();
+
+    audio::AudioSystem::instance().init();
 }

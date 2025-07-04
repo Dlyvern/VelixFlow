@@ -2,7 +2,6 @@
 
 #include "DefaultRender.hpp"
 #include "ShaderManager.hpp"
-#include "LightManager.hpp"
 #include "MeshComponent.hpp"
 #include "ParticleComponent.hpp"
 
@@ -37,7 +36,20 @@ void elix::DefaultRender::render(const elix::FrameData& frameData, Scene* scene)
     staticShader->setMat4("view", frameData.viewMatrix);
     staticShader->setMat4("projection", frameData.projectionMatrix);
     staticShader->setVec3("viewPos", frameData.cameraPosition);
-    LightManager::instance().sendLightsIntoShader(*staticShader);
+
+    for (size_t i = 0; i < scene->getLights().size(); ++i)
+    {
+        const auto light = scene->getLights().at(i);
+        staticShader->setInt("lights[" + std::to_string(i) + "].type", static_cast<int>(light->type));
+        staticShader->setVec3("lights[" + std::to_string(i) + "].position", light->position);
+        staticShader->setVec3("lights[" + std::to_string(i) + "].color", light->color);
+        staticShader->setFloat("lights[" + std::to_string(i) + "].strength", light->strength);
+        staticShader->setFloat("lights[" + std::to_string(i) + "].radius", light->radius);
+        staticShader->setVec3("lights[" + std::to_string(i) + "].direction", light->direction);
+        staticShader->setFloat("lights[" + std::to_string(i) + "].cutoff", light->cutoff);
+        staticShader->setFloat("lights[" + std::to_string(i) + "].outerCutoff", light->outerCutoff);
+    }
+
 
     staticShader->unbind();
 

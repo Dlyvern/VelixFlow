@@ -1,17 +1,13 @@
 #include "LightComponent.hpp"
 #include "GameObject.hpp"
-#include "LightManager.hpp"
 
-LightComponent::LightComponent(const lighting::Light &light) : m_light(light)
-{
-    LightManager::instance().addLight(&m_light);
-}
+LightComponent::LightComponent(const std::shared_ptr<lighting::Light> &light) : m_light(light) {}
 
 void LightComponent::update(float deltaTime) {}
 
-lighting::Light* LightComponent::getLight()
+std::shared_ptr<lighting::Light> LightComponent::getLight()
 {
-    return &m_light;
+    return m_light;
 }
 
 void LightComponent::setLocalOffset(const glm::vec3& offset)
@@ -33,14 +29,14 @@ glm::vec3 LightComponent::getWorldPosition() const
         return transform * glm::vec4(m_localOffset, 1.0f);
     }
 
-    return m_light.position;
+    return m_light->position;
 }
 
 void LightComponent::setOwner(GameObject *owner)
 {
     Component::setOwner(owner);
 
-    owner->setTransformationChangedCallback(std::bind(&LightComponent::onTransformationOwnerChanged, this, std::placeholders::_1));
+    owner->transformationChanged.connect(std::bind(&LightComponent::onTransformationOwnerChanged, this, std::placeholders::_1));
 
     updateLightTransform();
 }
@@ -51,18 +47,18 @@ void LightComponent::updateLightTransform()
     {
         const glm::mat4 transform = owner->getTransformMatrix();
 
-        m_light.position = transform * glm::vec4(m_localOffset, 1.0f);
+        m_light->position = transform * glm::vec4(m_localOffset, 1.0f);
 
         glm::vec3 forward = glm::normalize(glm::vec3(transform[2]));
 
-        m_light.direction = -forward;
+        m_light->direction = -forward;
     }
 }
 
 void LightComponent::destroy()
 {
     Component::destroy();
-    LightManager::instance().removeLight(&m_light);
+    // LightManager::instance().removeLight(&m_light);
 }
 
 void LightComponent::onTransformationOwnerChanged(const glm::mat4 &transformation)

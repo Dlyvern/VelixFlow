@@ -26,8 +26,6 @@ public:
     unsigned int id;
     float cutoff = glm::cos(glm::radians(12.5f));
     float outerCutoff = glm::cos(glm::radians(17.5f));
-
-    glm::mat4 lightSpaceMatrix;
 };
 } //namespace lighting
 

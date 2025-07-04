@@ -22,6 +22,7 @@ public:
         EQUIRECTANGULAR_TO_CUBEMAP = 10,
         SHADOW_DEBUG = 11,
         PARTICLE = 12,
+        BILLBOARD = 13,
     };
 
     static ShaderManager& instance();

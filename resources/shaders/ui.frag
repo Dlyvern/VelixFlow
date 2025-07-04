@@ -1,13 +1,15 @@
-#version 330 core
-
-in vec2 TexCoord;
-in vec4 Color;
-
+#version 420 core
+in vec2 vUV;
 out vec4 FragColor;
 
-uniform sampler2D texture0;
+uniform sampler2D uTexture;
+uniform vec4 uColor;
+uniform bool hasTexture;
 
 void main()
 {
-    FragColor = texture(texture0, TexCoord) * Color;
+    vec4 texColor = hasTexture ? texture(uTexture, vUV) : vec4(1.0);
+    if (hasTexture && texColor.a < 0.1)
+        discard;
+    FragColor = texColor * uColor;
 }

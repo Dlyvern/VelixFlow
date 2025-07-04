@@ -1,37 +1,29 @@
 #include "ScriptComponent.hpp"
-
-#include <iostream>
-
-#include "LibrariesLoader.hpp"
+#include "Logger.hpp"
 #include "ScriptsRegister.hpp"
 
 void ScriptComponent::addScript(const std::string &name)
 {
-    // using GetScriptsRegisterFunc = ScriptsRegister* (*)();
-    //
-    // auto function = (GetScriptsRegisterFunc)ScriptsLoader::instance().getFunction("getScriptsRegister", ScriptsLoader::instance().library);
-    //
-    // if (!function)
-    // {
-    //     std::cerr << "ScriptComponent::addScript(): Script " << name << " not found!" << std::endl;
-    //     return;
-    // }
-    //
-    // ScriptsRegister* s = function();
-
-    // auto script = s->createScript(name);
-
     auto script = ScriptsRegister::instance().createScript(name);
 
-        if (!script)
+    if (!script)
     {
-        std::cerr << "ScriptComponent::addScript(): Script " << name << " not found!" << std::endl;
+        ELIX_LOG_WARN("Script ", name, " not found");
         return;
     }
 
     script->setOwner(this->getOwner());
+
     m_scripts[name] = script;
 }
+
+void ScriptComponent::addScript(std::shared_ptr<Script> script)
+{
+    script->setOwner(this->getOwner());
+
+    m_scripts[script->getScriptName()] = script;
+}
+
 
 void ScriptComponent::update(float deltaTime)
 {
@@ -41,6 +33,12 @@ void ScriptComponent::update(float deltaTime)
     for (auto& [name, script] : m_scripts)
         if (script) script->onUpdate(deltaTime);
 }
+
+bool ScriptComponent::getUpdateScripts() const
+{
+    return m_updateScripts;
+}
+
 
 void ScriptComponent::setUpdateScripts(bool flag)
 {

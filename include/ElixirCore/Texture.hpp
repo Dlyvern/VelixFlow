@@ -78,6 +78,8 @@ namespace elix
 
         Texture();
 
+        static elix::Texture::TextureData loadImage(const std::string& filePath, bool flipVertically);
+
         void create();
 
         void addDefaultParameters();

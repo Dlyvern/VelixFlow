@@ -1,0 +1,9 @@
+#ifndef DEFAULT_MACROS_HPP
+#define DEFAULT_MACROS_HPP
+
+#define ELIX_NAMESPACE_BEGIN namespace elix {
+#define ELIX_NAMESPACE_END }
+
+
+
+#endif //DEFAULT_MACROS_HPP

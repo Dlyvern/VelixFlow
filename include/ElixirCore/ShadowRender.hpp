@@ -10,7 +10,7 @@ namespace elix
     class ShadowRender : public elix::IRender
     {
     public:
-        ShadowRender(const std::vector<lighting::Light*>& lights);
+        ShadowRender(const std::vector<std::shared_ptr<lighting::Light>>& lights);
         bool shouldExecute() const override;
         std::string getName() const override;
         void render(const elix::FrameData& frameData, Scene* scene = nullptr) override;

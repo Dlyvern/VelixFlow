@@ -1,21 +1,49 @@
 #ifndef FILESYSTEM_HPP
 #define FILESYSTEM_HPP
 
-#include <fstream>
 #include <filesystem>
+#include <string>
+
+#if defined(_WIN32)
+    #include <windows.h>
+#elif defined(__linux__)
+    #include <unistd.h>
+#elif defined(__APPLE__)
+    #include <mach-o/dyld.h>
+#endif
+
+#include "DefaultMacros.hpp"
+
+ELIX_NAMESPACE_BEGIN
 
 namespace filesystem
 {
-    inline std::string getFileContents(const std::string& path)
+    inline std::filesystem::path getExecutablePath()
     {
-        //TODO: MAKE IT MORE SAFE
-        std::ifstream file(path);
-        std::string str, line;
+    #if defined(_WIN32)
+        char buffer[MAX_PATH];
+        DWORD size = GetModuleFileNameA(nullptr, buffer, MAX_PATH);
+        if (size == 0 || size == MAX_PATH)
+            return {};
+        return std::filesystem::path(buffer).parent_path();
 
-        while (std::getline(file, line)) 
-            str += line + "\n";
+    #elif defined(__linux__)
+        char buffer[1024];
+        ssize_t size = readlink("/proc/self/exe", buffer, sizeof(buffer));
+        if (size <= 0 || size >= static_cast<ssize_t>(sizeof(buffer)))
+            return {};
+        return std::filesystem::path(std::string(buffer, size)).parent_path();
 
-        return str;
+    #elif defined(__APPLE__)
+        char buffer[1024];
+        uint32_t size = sizeof(buffer);
+        if (_NSGetExecutablePath(buffer, &size) != 0)
+            return {};
+        return std::filesystem::path(buffer).parent_path();
+
+    #else
+        return {};
+    #endif
     }
 
     inline std::filesystem::path getCurrentWorkingDirectory()
@@ -35,46 +63,8 @@ namespace filesystem
 
         return {path};
     }
-
-    inline std::filesystem::path getSkyboxesFolderPath()
-    {
-        return {getResourcesFolderPath().string() + "/skyboxes"};
-    }
-
-    inline std::filesystem::path getMaterialsFolderPath()
-    {
-        return {getResourcesFolderPath().string() + "/materials"};
-    }
-
-    inline std::filesystem::path getAnimationsFolderPath()
-    {
-        return {getResourcesFolderPath().string() + "/animations"};
-    }
-
-    inline std::filesystem::path getTexturesFolderPath()
-    {
-        return {getResourcesFolderPath().string() + "/textures"};
-    }
-
-    inline std::filesystem::path getModelsFolderPath()
-    {
-        return {getResourcesFolderPath().string() + "/models"};
-    }
-
-    inline std::filesystem::path getMapsFolderPath()
-    {
-        return {getResourcesFolderPath().string() + "/maps"};
-    }
-
-    inline std::filesystem::path getShadersFolderPath()
-    {
-        return {getResourcesFolderPath().string() + "/shaders"};
-    }
-
-    inline std::filesystem::path getFontsFolderPath()
-    {
-        return {getResourcesFolderPath().string() + "/fonts"};
-    }
 }
+
+ELIX_NAMESPACE_END
 
 #endif //FILESYSTEM_HPP

@@ -12,21 +12,6 @@
 
 namespace
 {
-    elix::Texture::TextureData getTextureDataFromFile(const std::string& filePath, bool flipVertically)
-    {
-        stbi_set_flip_vertically_on_load(flipVertically);
-
-        elix::Texture::TextureData textureData{};
-
-            textureData.data = stbi_load(filePath.data(), &textureData.width, &textureData.height, &textureData.numberOfChannels, 0);
-
-            if(!textureData.data)
-                ELIX_LOG_ERROR("Failed to load a texture: ", filePath);
-
-        return textureData;
-    }
-
-
     GLenum toGL(elix::Texture::ParameterType type)
     {
         switch(type)
@@ -86,9 +71,23 @@ elix::Texture::Texture(const std::string &filePath)
     load(filePath);
 }
 
+elix::Texture::TextureData elix::Texture::loadImage(const std::string& filePath, bool flipVertically)
+{
+    stbi_set_flip_vertically_on_load(flipVertically);
+
+    elix::Texture::TextureData textureData{};
+
+    textureData.data = stbi_load(filePath.data(), &textureData.width, &textureData.height, &textureData.numberOfChannels, 0);
+
+    if(!textureData.data)
+        ELIX_LOG_ERROR("Failed to load a texture: ", filePath);
+
+    return textureData;
+}
+
 void elix::Texture::load(const std::string &filePath)
 {
-    m_textureData = getTextureDataFromFile(filePath, false);
+    m_textureData = loadImage(filePath, false);
 
     if (m_textureData.numberOfChannels == 4)
         m_textureData.format = elix::Texture::TextureFormat::RGBA;

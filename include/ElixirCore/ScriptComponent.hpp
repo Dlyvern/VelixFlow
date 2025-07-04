@@ -13,9 +13,12 @@ class ScriptComponent final : public Component
 public:
     void addScript(const std::string& name);
 
+    void addScript(std::shared_ptr<Script> script);
+
     void update(float deltaTime) override;
 
     void setUpdateScripts(bool flag);
+    bool getUpdateScripts() const;
 
     const std::unordered_map<std::string, std::shared_ptr<Script>>& getScripts() const;
 

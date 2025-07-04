@@ -20,8 +20,7 @@ void GameObject::setRotation(const glm::vec3 &axis)
 
     m_isTransformMatrixDirty = true;
 
-    if (m_transformationChangedCallback)
-        m_transformationChangedCallback(getTransformMatrix());
+    transformationChanged.emit(getTransformMatrix());
 }
 
 void GameObject::setPosition(const glm::vec3 &position)
@@ -30,11 +29,9 @@ void GameObject::setPosition(const glm::vec3 &position)
 
     m_isTransformMatrixDirty = true;
 
-    if (m_positionChangedCallback)
-        m_positionChangedCallback(position);
+    positionChanged.emit(position);
 
-    if (m_transformationChangedCallback)
-        m_transformationChangedCallback(getTransformMatrix());
+    transformationChanged.emit(getTransformMatrix());
 }
 
 void GameObject::setScale(const glm::vec3 &scale)
@@ -42,18 +39,7 @@ void GameObject::setScale(const glm::vec3 &scale)
     m_scale = scale;
     m_isTransformMatrixDirty = true;
     
-    if (m_transformationChangedCallback)
-        m_transformationChangedCallback(getTransformMatrix());
-}
-
-void GameObject::setPositionChangedCallback(const std::function<void(const glm::vec3 &)> &callback)
-{
-    m_positionChangedCallback = callback;
-}
-
-void GameObject::setTransformationChangedCallback(const std::function<void(const glm::mat4 &)> &callback)
-{
-    m_transformationChangedCallback = callback;
+    transformationChanged.emit(getTransformMatrix());
 }
 
 const common::LayerMask& GameObject::getLayerMask() const

@@ -8,8 +8,18 @@
 
 #include "Common.hpp"
 #include "Component.hpp"
-#include "Material.hpp"
-#include "ScriptsRegister.hpp"
+#include "Signal.hpp"
+
+
+template<typename T>
+struct IsMultiComponent {
+    static constexpr bool value = false;
+};
+
+template<>
+struct IsMultiComponent<class AudioComponent> {
+    static constexpr bool value = true;
+};
 
 class GameObject
 {
@@ -22,8 +32,8 @@ public:
     virtual void setRotation(const glm::vec3 &axis);
     virtual void setName(const std::string& name);
 
-    void setPositionChangedCallback(const std::function<void(const glm::vec3&)>& callback);
-    void setTransformationChangedCallback(const std::function<void(const glm::mat4&)>& callback);
+    elix::Signal<const glm::vec3&> positionChanged;
+    elix::Signal<const glm::mat4&> transformationChanged;
 
     [[nodiscard]] glm::vec3 getPosition() const;
     [[nodiscard]] glm::vec3 getScale() const;
@@ -46,7 +56,11 @@ public:
         auto comp = std::make_shared<T>(std::forward<Args>(args)...);
         T* ptr = comp.get();
         comp->setOwner(this);
-        m_components[type] = std::move(comp);
+
+        if constexpr (IsMultiComponent<T>::value)
+            m_multiComponents[type].emplace_back(std::move(comp));
+        else
+            m_components[type] = std::move(comp);
         return ptr;
     }
 
@@ -55,6 +69,41 @@ public:
     {
         const auto it = m_components.find(std::type_index(typeid(T)));
         return it != m_components.end() ? static_cast<T*>(it->second.get()) : nullptr;
+    }
+
+    template<typename T>
+    void removeComponent()
+    {
+        const auto type = std::type_index(typeid(T));
+        if constexpr (IsMultiComponent<T>::value)
+            m_multiComponents.erase(type);
+        else
+            m_components.erase(type);
+    }
+
+    template<typename T>
+    std::vector<T*> getComponents()
+    {
+        std::vector<T*> result;
+        const auto type = std::type_index(typeid(T));
+
+        if constexpr (IsMultiComponent<T>::value) 
+        {
+            auto it = m_multiComponents.find(type);
+
+            if (it != m_multiComponents.end())
+                for (auto& comp : it->second)
+                    result.push_back(static_cast<T*>(comp.get()));
+        } 
+        else 
+        {
+            auto it = m_components.find(type);
+
+            if (it != m_components.end())
+                result.push_back(static_cast<T*>(it->second.get()));
+        }
+
+        return result;
     }
 
     template<typename T>
@@ -67,9 +116,8 @@ public:
 private:
     glm::mat4 m_transformMatrix;
     bool m_isTransformMatrixDirty{true};
-    std::function<void(const glm::vec3&)> m_positionChangedCallback;
-    std::function<void(const glm::mat4&)> m_transformationChangedCallback;
     std::unordered_map<std::type_index, std::shared_ptr<Component>> m_components;
+    std::unordered_map<std::type_index, std::vector<std::shared_ptr<Component>>> m_multiComponents;
     common::LayerMask m_layerMask{common::LayerMask::DEFAULT};
     glm::vec3 m_position{glm::vec3(0.0f, 0.0f, 0.0f)};
     glm::vec3 m_scale{glm::vec3(1.0f, 1.0f, 1.0f)};
