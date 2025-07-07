@@ -29,9 +29,6 @@ jobs:
       - name: Clean Previous Build
         run: rm -rf build
 
-      - name: Build PhysX
-        run: ./scripts/build_physx_linux.sh
-
       - name: Configure and Build
         run: |
           cmake -S . -B build -G Ninja -DPHYSX_BUILD_TYPE=checked
@@ -72,10 +69,6 @@ jobs:
           if (Test-Path build) {
             Remove-Item -Recurse -Force build
           }
-
-      - name: Build PhysX for Windows
-        shell: cmd
-        run: scripts\build_physx_windows.bat
 
       - name: Configure and Build
         run: |
