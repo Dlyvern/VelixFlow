@@ -24,9 +24,14 @@ if exist "%PRESET_FILE%" (
     echo [VelixFlow] Patching PhysX preset to disable GPU projects...
 
     rem Escape " inside strings with ` (backtick) for PowerShell
-    powershell -Command "(Get-Content -Path '%PRESET_FILE%') -replace '(<CMakeSwitch name=`"PX_GENERATE_GPU_PROJECTS`" value=`")[Tt]rue(`"/>)', '`$1False`$2' | Set-Content -Path '%PRESET_FILE%'"
+    
+    powershell -Command ^
+    "(Get-Content PhysX\physx\buildtools\presets\public\vc17win64.xml) -replace '(<CMakeSwitch name=\"PX_GENERATE_GPU_PROJECTS\" value=\")[Tt]rue(\"/>)', '${1}False${2}' |" ^
+    "Set-Content -Path PhysX\physx\buildtools\presets\public\vc17win64.xml"
 
-    powershell -Command "(Get-Content -Path '%PRESET_FILE%') -replace '(<CMakeSwitch name=`"PX_GENERATE_GPU_PROJECTS_ONLY`" value=`")[Tt]rue(`"/>)', '`$1False`$2' | Set-Content -Path '%PRESET_FILE%'"
+    powershell -Command ^
+    "(Get-Content PhysX\physx\buildtools\presets\public\vc17win64.xml) -replace '(<CMakeSwitch name=\"PX_GENERATE_GPU_PROJECTS_ONLY\" value=\")[Tt]rue(\"/>)', '${1}False${2}' |" ^
+    "Set-Content -Path PhysX\physx\buildtools\presets\public\vc17win64.xml"
 
     echo [VelixFlow] PhysX preset patched.
 )

@@ -260,35 +260,94 @@ target_link_libraries(${PROJECT_NAME} PRIVATE glad)
 
 # === Link Libraries ===
 if(VELIX_PLATFORM_WINDOWS)
+
+    add_library(glfw3 STATIC IMPORTED)
+    set_target_properties(glfw3 PROPERTIES
+        IMPORTED_LOCATION "${GLFW_ROOT}/lib/windows/glfw3.lib"
+        INTERFACE_INCLUDE_DIRECTORIES "${GLFW_ROOT}/include"
+    )
+
+    add_library(freetype STATIC IMPORTED)
+    set_target_properties(freetype PROPERTIES
+        IMPORTED_LOCATION "${FREETYPE_ROOT}/lib/windows/freetype.lib"
+        INTERFACE_INCLUDE_DIRECTORIES "${FREETYPE_ROOT}/include"
+    )
+
+    add_library(PhysXLibs INTERFACE)
+
+    set(PHYSX_LIB_DIR "${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}")
+
+    set(PHYSX_LIBS
+        "${PHYSX_LIB_DIR}/PhysXExtensions_static_64.lib"
+        "${PHYSX_LIB_DIR}/PhysX_static_64.lib"
+        "${PHYSX_LIB_DIR}/PhysXPvdSDK_static_64.lib"
+        "${PHYSX_LIB_DIR}/PhysXCommon_static_64.lib"
+        "${PHYSX_LIB_DIR}/PhysXFoundation_static_64.lib"
+        "${PHYSX_LIB_DIR}/PhysXCharacterKinematic_static_64.lib"
+    )
+
+    target_link_libraries(PhysXLibs INTERFACE ${PHYSX_LIBS})
+    target_include_directories(PhysXLibs INTERFACE "${PHYSX_ROOT}/include")
+
+    add_library(Velix::PhysX ALIAS PhysXLibs)
+
     target_link_libraries(${PROJECT_NAME} PUBLIC
-#            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXExtensions_static_64.lib
-#            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysX_static_64.lib
-#            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXPvdSDK_static_64.lib
-#            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXCommon_static_64.lib
-#            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXFoundation_static_64.lib
-#            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXCharacterKinematic_static_64.lib
-            OpenGL::OpenGL
-#            ${LIBZ_ROOT}/lib/windows/zlib.lib
-            ${GLFW_ROOT}/lib/windows/glfw3.lib
-            assimp
-            ${FREETYPE_ROOT}/lib/windows/freetype.lib
-            Threads::Threads
-#            opengl32.lib
+        glfw3
+        freetype
+        OpenGL::OpenGL
+        assimp
+        Threads::Threads
+        Velix::PhysX
     )
 elseif(VELIX_PLATFORM_MACOS)
+    add_library(freetype STATIC IMPORTED)
+    set_target_properties(freetype PROPERTIES
+        IMPORTED_LOCATION "${FREETYPE_ROOT}/lib/linux/libfreetype.a"
+        INTERFACE_INCLUDE_DIRECTORIES "${FREETYPE_ROOT}/include"
+    )
+
+    add_library(fmod STATIC IMPORTED)
+    set_target_properties(fmod PROPERTIES
+        IMPORTED_LOCATION "${FMOD_ROOT}/lib/linux/libfmod.so.14.8"
+        INTERFACE_INCLUDE_DIRECTORIES "${FMOD_ROOT}/include"
+    )
+
+    add_library(glfw3 STATIC IMPORTED)
+    set_target_properties(glfw3 PROPERTIES
+        IMPORTED_LOCATION "${GLFW_ROOT}/lib/linux/libglfw3.a"
+        INTERFACE_INCLUDE_DIRECTORIES "${GLFW_ROOT}/include"
+    )
+
+    add_library(libz STATIC IMPORTED)
+    set_target_properties(libz PROPERTIES
+        IMPORTED_LOCATION "${LIBZ_ROOT}/lib/linux/libz.a"
+        INTERFACE_INCLUDE_DIRECTORIES "${LIBZ_ROOT}/include"
+    )
+
+    add_library(PhysXLibs INTERFACE)
+
+    set(PHYSX_LIB_DIR "${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}")
+
+    set(PHYSX_LIBS
+        "${PHYSX_LIB_DIR}/PhysXExtensions_static_64.lib"
+        "${PHYSX_LIB_DIR}/PhysX_static_64.lib"
+        "${PHYSX_LIB_DIR}/PhysXPvdSDK_static_64.lib"
+        "${PHYSX_LIB_DIR}/PhysXCommon_static_64.lib"
+        "${PHYSX_LIB_DIR}/PhysXFoundation_static_64.lib"
+        "${PHYSX_LIB_DIR}/PhysXCharacterKinematic_static_64.lib"
+    )
+
+    target_link_libraries(PhysXLibs INTERFACE ${PHYSX_LIBS})
+    target_include_directories(PhysXLibs INTERFACE "${PHYSX_ROOT}/include")
+
+    add_library(Velix::PhysX ALIAS PhysXLibs)
+
     target_link_libraries(${PROJECT_NAME} PUBLIC
-            ${PHYSX_ROOT}/lib/linux/${PHYSX_BUILD_TYPE}/libPhysXExtensions_static_64.a
-            ${PHYSX_ROOT}/lib/linux/${PHYSX_BUILD_TYPE}/libPhysX_static_64.a
-            ${PHYSX_ROOT}/lib/linux/${PHYSX_BUILD_TYPE}/libPhysXPvdSDK_static_64.a
-            ${PHYSX_ROOT}/lib/linux/${PHYSX_BUILD_TYPE}/libPhysXCommon_static_64.a
-            ${PHYSX_ROOT}/lib/linux/${PHYSX_BUILD_TYPE}/libPhysXFoundation_static_64.a
-            ${PHYSX_ROOT}/lib/linux/${PHYSX_BUILD_TYPE}/libPhysXCharacterKinematic_static_64.a
-            ${GLFW_ROOT}/lib/linux/libglfw3.a
-            ${ASSIMP_ROOT}/lib/linux/libassimp.a
+            Velix::PhysX
+            glfw3
             assimp
-            ${FMOD_ROOT}/lib/linux/libfmod.so.14.8
-            ${FREETYPE_ROOT}/lib/linux/libfreetype.a
-            ${LIBZ_ROOT}/lib/linux/libz.a
+            fmod
+            freetype
             ${COCOA_LIBRARY}
             ${OPENGL_LIBRARY}
             ${IOKIT_LIBRARY}
@@ -296,23 +355,56 @@ elseif(VELIX_PLATFORM_MACOS)
             Threads::Threads
     )
 else()
+    add_library(freetype STATIC IMPORTED)
+    set_target_properties(freetype PROPERTIES
+        IMPORTED_LOCATION "${FREETYPE_ROOT}/lib/linux/libfreetype.a"
+        INTERFACE_INCLUDE_DIRECTORIES "${FREETYPE_ROOT}/include"
+    )
+
+    add_library(fmod STATIC IMPORTED)
+    set_target_properties(fmod PROPERTIES
+        IMPORTED_LOCATION "${FMOD_ROOT}/lib/linux/libfmod.so.14.8"
+        INTERFACE_INCLUDE_DIRECTORIES "${FMOD_ROOT}/include"
+    )
+
+    add_library(glfw3 STATIC IMPORTED)
+    set_target_properties(glfw3 PROPERTIES
+        IMPORTED_LOCATION "${GLFW_ROOT}/lib/linux/libglfw3.a"
+        INTERFACE_INCLUDE_DIRECTORIES "${GLFW_ROOT}/include"
+    )
+
+    add_library(libz STATIC IMPORTED)
+    set_target_properties(libz PROPERTIES
+        IMPORTED_LOCATION "${LIBZ_ROOT}/lib/linux/libz.a"
+        INTERFACE_INCLUDE_DIRECTORIES "${LIBZ_ROOT}/include"
+    )
+
+    add_library(PhysXLibs INTERFACE)
+
+    set(PHYSX_LIB_DIR "${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}")
+
+    set(PHYSX_LIBS
+        "${PHYSX_LIB_DIR}/PhysXExtensions_static_64.lib"
+        "${PHYSX_LIB_DIR}/PhysX_static_64.lib"
+        "${PHYSX_LIB_DIR}/PhysXPvdSDK_static_64.lib"
+        "${PHYSX_LIB_DIR}/PhysXCommon_static_64.lib"
+        "${PHYSX_LIB_DIR}/PhysXFoundation_static_64.lib"
+        "${PHYSX_LIB_DIR}/PhysXCharacterKinematic_static_64.lib"
+    )
+
+    target_link_libraries(PhysXLibs INTERFACE ${PHYSX_LIBS})
+    target_include_directories(PhysXLibs INTERFACE "${PHYSX_ROOT}/include")
+
+    add_library(Velix::PhysX ALIAS PhysXLibs)
+
     target_link_libraries(${PROJECT_NAME} PUBLIC
-            -Wl,--start-group
-            ${PHYSX_ROOT}/lib/linux/${PHYSX_BUILD_TYPE}/libPhysXExtensions_static_64.a
-            ${PHYSX_ROOT}/lib/linux/${PHYSX_BUILD_TYPE}/libPhysX_static_64.a
-            ${PHYSX_ROOT}/lib/linux/${PHYSX_BUILD_TYPE}/libPhysXPvdSDK_static_64.a
-            ${PHYSX_ROOT}/lib/linux/${PHYSX_BUILD_TYPE}/libPhysXCommon_static_64.a
-            ${PHYSX_ROOT}/lib/linux/${PHYSX_BUILD_TYPE}/libPhysXFoundation_static_64.a
-            ${PHYSX_ROOT}/lib/linux/${PHYSX_BUILD_TYPE}/libPhysXCharacterKinematic_static_64.a
-            -Wl,--end-group
-            OpenGL::OpenGL
-            ${GLFW_ROOT}/lib/linux/libglfw3.a
-            ${FMOD_ROOT}/lib/linux/libfmod.so.14.8
-#            ${ASSIMP_ROOT}/lib/linux/libassimp.a
+            Velix::PhysX
+            glfw3
             assimp
-            ${FREETYPE_ROOT}/lib/linux/libfreetype.a
+            fmod
+            freetype
+            OpenGL::OpenGL
             Threads::Threads
-            ${LIBZ_ROOT}/lib/linux/libz.a
     )
 endif()
 
