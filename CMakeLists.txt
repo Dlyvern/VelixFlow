@@ -1,17 +1,17 @@
 cmake_minimum_required(VERSION 3.16)
-project(ElixirCore)
+project(VelixFlow)
 
 if(WIN32)
-    set(ELIXIR_PLATFORM "windows")
-    set(ELIXIR_PLATFORM_WINDOWS ON)
+    set(Velix_PLATFORM "windows")
+    set(Velix_PLATFORM_WINDOWS ON)
     message(STATUS "Building for Windows platform")
 elseif(UNIX)
-    set(ELIXIR_PLATFORM "linux")
-    set(ELIXIR_PLATFORM_LINUX ON)
+    set(Velix_PLATFORM "linux")
+    set(Velix_PLATFORM_LINUX ON)
     message(STATUS "Building for Linux platform")
 elseif(APPLE)
-    set(ELIXIR_PLATFORM "macos")
-    set(ELIXIR_PLATFORM_MACOS ON)
+    set(Velix_PLATFORM "macos")
+    set(Velix_PLATFORM_MACOS ON)
     message(STATUS "Building for macOS platform")
 else()
     message(FATAL_ERROR "Unsupported platform!")
@@ -26,7 +26,7 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # === Paths ===
-set(INCLUDE_DIR include/ElixirCore)
+set(INCLUDE_DIR include/VelixFlow)
 set(SRC_DIR src)
 set(LIBRARIES_DIR libraries)
 set(EXTERNAL_DIR external)
@@ -42,14 +42,14 @@ set(LIBZ_ROOT ${CMAKE_SOURCE_DIR}/external/libz)
 set(FMOD_ROOT ${CMAKE_SOURCE_DIR}/external/fmod)
 
 
-option(ELIXIR_USE_PHYSX "Enable NVIDIA PhysX support" ON)
+option(VELIX_USE_PHYSX "Enable NVIDIA PhysX support" ON)
 
 if(WIN32)
     message(WARNING "PhysX is not supported for windows build. Disabling PhysX")
-    set(ELIXIR_USE_PHYSX OFF)
+    set(VELIX_USE_PHYSX OFF)
 endif()
 
-if(ELIXIR_PLATFORM_MACOS)
+if(Velix_PLATFORM_MACOS)
     add_compile_options(-std=c++23)
     add_definitions(-DGL_SILENCE_DEPRECATION)
 
@@ -65,7 +65,7 @@ set(PHYSX_BUILD_TYPE "checked" CACHE STRING "The build type of PhysX")
 set_property(CACHE PHYSX_BUILD_TYPE PROPERTY STRINGS debug checked profile release)
 
 # === Build Mode ===
-if(ELIXIR_USE_PHYSX)
+if(VELIX_USE_PHYSX)
     set(PHYSX_BUILD_TYPE "checked" CACHE STRING "The build type of PhysX")
     set_property(CACHE PHYSX_BUILD_TYPE PROPERTY STRINGS debug checked profile release)
 endif()
@@ -76,7 +76,7 @@ file(GLOB_RECURSE PROJECT_SOURCES ${SRC_DIR}/*.cpp)
 
 # === Build Mode ===
 if(NOT CMAKE_BUILD_TYPE)
-    if(ELIXIR_USE_PHYSX)
+    if(VELIX_USE_PHYSX)
         if(PHYSX_BUILD_TYPE STREQUAL "debug" OR PHYSX_BUILD_TYPE STREQUAL "checked")
             set(CMAKE_BUILD_TYPE "Debug")
         else()
@@ -89,14 +89,14 @@ endif()
 
 # === Output Messages ===
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    if(ELIXIR_USE_PHYSX)
+    if(VELIX_USE_PHYSX)
         message("Building in Debug with PhysX ${PHYSX_BUILD_TYPE}")
     else()
         message("Building in Debug without PhysX")
     endif()
     add_compile_definitions(_DEBUG)
 else()
-    if(ELIXIR_USE_PHYSX)
+    if(VELIX_USE_PHYSX)
         message("Building in Release with PhysX ${PHYSX_BUILD_TYPE}")
     else()
         message("Building in Release without PhysX")
@@ -160,7 +160,7 @@ if(NOT TARGET OpenGL::OpenGL)
 endif()
 
 
-if(ELIXIR_PLATFORM_WINDOWS)
+if(Velix_PLATFORM_WINDOWS)
     add_definitions(-DNOMINMAX)
 endif()
 
@@ -199,14 +199,14 @@ add_library(glad STATIC external/glad/src/glad.c)
 target_include_directories(glad
         PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/external/glad/include>
-        $<INSTALL_INTERFACE:include/ElixirCore/glad>
+        $<INSTALL_INTERFACE:include/VelixFlow/glad>
 )
 
 set_target_properties(glad PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 # === Create Static Library ===
 add_library(${PROJECT_NAME} STATIC ${PROJECT_HEADERS} ${PROJECT_SOURCES}  ${EMBEDDED_SHADER_SOURCES})
-add_library(Elixir::ElixirCore ALIAS ElixirCore)
+add_library(Velix::VelixFlow ALIAS VelixFlow)
 set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
@@ -222,29 +222,29 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 endif()
 
 
-target_compile_definitions(${PROJECT_NAME} PUBLIC ELIXIR_USE_PHYSX=$<BOOL:${ELIXIR_USE_PHYSX}>)
+target_compile_definitions(${PROJECT_NAME} PUBLIC VELIX_USE_PHYSX=$<BOOL:${VELIX_USE_PHYSX}>)
 
 # === Public Includes ===
 target_include_directories(${PROJECT_NAME} PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/${LIBRARIES_DIR}>
 
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/ElixirCore>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/VelixFlow>
         $<INSTALL_INTERFACE:include>
 
         $<BUILD_INTERFACE:${GLFW_ROOT}/include/>
-        $<INSTALL_INTERFACE:include/ElixirCore/glfw>
+        $<INSTALL_INTERFACE:include/VelixFlow/glfw>
 
         $<BUILD_INTERFACE:${GLAD_ROOT}/include/>
-        $<INSTALL_INTERFACE:include/ElixirCore/glad>
+        $<INSTALL_INTERFACE:include/VelixFlow/glad>
 
         $<BUILD_INTERFACE:${FREETYPE_ROOT}/include/>
-        $<INSTALL_INTERFACE:include/ElixirCore/freetype>
+        $<INSTALL_INTERFACE:include/VelixFlow/freetype>
 
         $<BUILD_INTERFACE:${FMOD_ROOT}/include/>
-        $<INSTALL_INTERFACE:include/ElixirCore/fmod>
+        $<INSTALL_INTERFACE:include/VelixFlow/fmod>
 
         $<BUILD_INTERFACE:${ASSIMP_ROOT}/include/>
-        $<INSTALL_INTERFACE:include/ElixirCore/assimp>
+        $<INSTALL_INTERFACE:include/VelixFlow/assimp>
 
         ${OPENGL_INCLUDE_DIRS}
 )
@@ -252,19 +252,19 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 #Just to supress warnings on Macos and Windows
 target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
     $<BUILD_INTERFACE:${GLM_ROOT}/include/>
-    $<INSTALL_INTERFACE:include/ElixirCore/glm>
+    $<INSTALL_INTERFACE:include/VelixFlow/glm>
 )
 
 #Just to supress warnings on Macos and Windows
 target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
         $<BUILD_INTERFACE:${PHYSX_ROOT}/include/>
-        $<INSTALL_INTERFACE:include/ElixirCore/PhysX>
+        $<INSTALL_INTERFACE:include/VelixFlow/PhysX>
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE glad)
 
 # === Link Libraries ===
-if(ELIXIR_PLATFORM_WINDOWS)
+if(Velix_PLATFORM_WINDOWS)
     target_link_libraries(${PROJECT_NAME} PUBLIC
 #            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXExtensions_static_64.lib
 #            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysX_static_64.lib
@@ -280,7 +280,7 @@ if(ELIXIR_PLATFORM_WINDOWS)
             Threads::Threads
 #            opengl32.lib
     )
-elseif(ELIXIR_PLATFORM_MACOS)
+elseif(Velix_PLATFORM_MACOS)
     target_link_libraries(${PROJECT_NAME} PUBLIC
             ${PHYSX_ROOT}/lib/linux/${PHYSX_BUILD_TYPE}/libPhysXExtensions_static_64.a
             ${PHYSX_ROOT}/lib/linux/${PHYSX_BUILD_TYPE}/libPhysX_static_64.a
@@ -340,22 +340,22 @@ endforeach()
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 install(TARGETS glad
-        EXPORT ElixirCoreTargets
+        EXPORT VelixFlowTargets
         ARCHIVE DESTINATION lib
         LIBRARY DESTINATION lib
         RUNTIME DESTINATION bin
         INCLUDES DESTINATION include
 )
 
-install(TARGETS ElixirCore
-        EXPORT ElixirCoreTargets
+install(TARGETS VelixFlow
+        EXPORT VelixFlowTargets
         ARCHIVE DESTINATION lib
         LIBRARY DESTINATION lib
         RUNTIME DESTINATION bin
         INCLUDES DESTINATION include
 )
 
-if(ELIXIR_PLATFORM_WINDOWS)
+if(Velix_PLATFORM_WINDOWS)
     install(FILES
         ${GLFW_ROOT}/lib/windows/glfw3.lib
 #        ${LIBZ_ROOT}/lib/windows/zlib.lib
@@ -378,7 +378,7 @@ if(ELIXIR_PLATFORM_WINDOWS)
 
 endif()
 
-if(ELIXIR_PLATFORM_LINUX)
+if(Velix_PLATFORM_LINUX)
     set_target_properties(${PROJECT_NAME} PROPERTIES
         BUILD_RPATH "${FMOD_ROOT}/lib/linux"
         INSTALL_RPATH "$ORIGIN"
@@ -386,39 +386,39 @@ if(ELIXIR_PLATFORM_LINUX)
 endif()
 
 install(DIRECTORY include/ DESTINATION include)
-install(DIRECTORY ${PHYSX_ROOT}/include/ DESTINATION include/ElixirCore/PhysX)
-install(DIRECTORY ${GLM_ROOT}/include/ DESTINATION include/ElixirCore/glm)
-install(DIRECTORY ${GLFW_ROOT}/include/ DESTINATION include/ElixirCore/glfw)
-install(DIRECTORY ${ASSIMP_ROOT}/include/ DESTINATION include/ElixirCore/assimp)
-install(DIRECTORY ${GLAD_ROOT}/include/ DESTINATION include/ElixirCore/glad)
-install(DIRECTORY ${FREETYPE_ROOT}/include/ DESTINATION include/ElixirCore/freetype)
-install(DIRECTORY ${FMOD_ROOT}/include/ DESTINATION include/ElixirCore/fmod)
+install(DIRECTORY ${PHYSX_ROOT}/include/ DESTINATION include/VelixFlow/PhysX)
+install(DIRECTORY ${GLM_ROOT}/include/ DESTINATION include/VelixFlow/glm)
+install(DIRECTORY ${GLFW_ROOT}/include/ DESTINATION include/VelixFlow/glfw)
+install(DIRECTORY ${ASSIMP_ROOT}/include/ DESTINATION include/VelixFlow/assimp)
+install(DIRECTORY ${GLAD_ROOT}/include/ DESTINATION include/VelixFlow/glad)
+install(DIRECTORY ${FREETYPE_ROOT}/include/ DESTINATION include/VelixFlow/freetype)
+install(DIRECTORY ${FMOD_ROOT}/include/ DESTINATION include/VelixFlow/fmod)
 
 
 
 
 # === Install CMake Config Package ===
-install(EXPORT ElixirCoreTargets
-        FILE ElixirCoreTargets.cmake
-        NAMESPACE Elixir::
-        DESTINATION lib/cmake/ElixirCore
+install(EXPORT VelixFlowTargets
+        FILE VelixFlowTargets.cmake
+        NAMESPACE Velix::
+        DESTINATION lib/cmake/VelixFlow
 )
 
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
-        "${CMAKE_CURRENT_BINARY_DIR}/ElixirCoreConfigVersion.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/VelixFlowConfigVersion.cmake"
         VERSION 1.0.0
         COMPATIBILITY SameMajorVersion
 )
 
 configure_package_config_file(
-        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/ElixirCoreConfig.cmake.in"
-        "${CMAKE_CURRENT_BINARY_DIR}/ElixirCoreConfig.cmake"
-        INSTALL_DESTINATION lib/cmake/ElixirCore
+        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/VelixFlowConfig.cmake.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/VelixFlowConfig.cmake"
+        INSTALL_DESTINATION lib/cmake/VelixFlow
 )
 
 install(FILES
-        "${CMAKE_CURRENT_BINARY_DIR}/ElixirCoreConfig.cmake"
-        "${CMAKE_CURRENT_BINARY_DIR}/ElixirCoreConfigVersion.cmake"
-        DESTINATION lib/cmake/ElixirCore
+        "${CMAKE_CURRENT_BINARY_DIR}/VelixFlowConfig.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/VelixFlowConfigVersion.cmake"
+        DESTINATION lib/cmake/VelixFlow
 )

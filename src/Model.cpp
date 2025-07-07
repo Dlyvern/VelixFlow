@@ -10,6 +10,11 @@ elix::Model::Model(const std::string &name, const std::vector<elix::Mesh> &meshe
     }
 }
 
+const std::vector<elix::Mesh>& elix::Model::getMeshes() const
+{
+    return m_meshes;
+}
+
 void elix::Model::addAnimation(common::Animation *animation)
 {
     m_animations.push_back(animation);

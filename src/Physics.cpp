@@ -13,7 +13,7 @@ struct UserErrorCallback final : physx::PxErrorCallback
 
 void physics::PhysicsController::init()
 {
-#ifdef ELIXIR_USE_PHYSX
+#ifdef VELIX_USE_PHYSX
     m_foundation = PxCreateFoundation(PX_PHYSICS_VERSION, m_defaultAllocator, gErrorCallback);
     m_pvd = PxCreatePvd(*m_foundation);
 
@@ -41,19 +41,19 @@ physics::PhysicsController& physics::PhysicsController::instance()
 
 void physics::PhysicsController::simulate(float deltaTime)
 {
-#ifdef ELIXIR_USE_PHYSX
+#ifdef VELIX_USE_PHYSX
     if (!m_scene)
         return;
 
     m_scene->simulate(deltaTime);
     m_scene->fetchResults(true);
 
-#endif //ELIXIR_USE_PHYSX
+#endif //VELIX_USE_PHYSX
 }
 
 void physics::PhysicsController::release()
 {
-#ifdef ELIXIR_USE_PHYSX
+#ifdef VELIX_USE_PHYSX
     if (m_scene)
         m_scene->release();
     if (m_physics)
@@ -61,12 +61,12 @@ void physics::PhysicsController::release()
     if (m_foundation)
         m_foundation->release();
 
-#endif //ELIXIR_USE_PHYSX
+#endif //VELIX_USE_PHYSX
 }
 
 physx::PxControllerManager* physics::PhysicsController::getControllerManager() const
 {
-#ifdef ELIXIR_USE_PHYSX
+#ifdef VELIX_USE_PHYSX
     return m_controllerManager;
 #else
     return nullptr;
@@ -75,7 +75,7 @@ physx::PxControllerManager* physics::PhysicsController::getControllerManager() c
 
 physx::PxMaterial* physics::PhysicsController::getDefaultMaterial() const
 {
-#ifdef ELIXIR_USE_PHYSX
+#ifdef VELIX_USE_PHYSX
     return m_defaultMaterial;
 #else
     return nullptr;
@@ -84,7 +84,7 @@ physx::PxMaterial* physics::PhysicsController::getDefaultMaterial() const
 
 physx::PxScene* physics::PhysicsController::getScene() const
 {
-#ifdef ELIXIR_USE_PHYSX
+#ifdef VELIX_USE_PHYSX
     return m_scene;
 #else
     return nullptr;
@@ -93,7 +93,7 @@ physx::PxScene* physics::PhysicsController::getScene() const
 
 physx::PxRigidDynamic* physics::PhysicsController::addDynamicActor(std::shared_ptr<GameObject> actor) const
 {
-#ifdef ELIXIR_USE_PHYSX
+#ifdef VELIX_USE_PHYSX
     if (!m_physics)
     {
         ELIX_LOG_ERROR("Physics is not initialized");
@@ -159,12 +159,12 @@ physx::PxRigidDynamic* physics::PhysicsController::addDynamicActor(std::shared_p
     ELIX_LOG_ERROR("Physics disabled: addDynamicActor returns nullptr");
     return nullptr;
 
-#endif //ELIXIR_USE_PHYSX
+#endif //VELIX_USE_PHYSX
 }
 
 physx::PxRigidStatic * physics::PhysicsController::addStaticActor(std::shared_ptr<GameObject> actor)
 {
-#ifdef ELIXIR_USE_PHYSX
+#ifdef VELIX_USE_PHYSX
     if (!m_physics)
     {
         std::cerr << "physics::PhysicsController::addDynamicActor(): physics is not initialized" << std::endl;
@@ -232,7 +232,7 @@ physx::PxRigidStatic * physics::PhysicsController::addStaticActor(std::shared_pt
 
 void physics::PhysicsController::resizeCollider(const glm::vec3 &newSize, std::shared_ptr<GameObject> collider)
 {
-#ifdef ELIXIR_USE_PHYSX
+#ifdef VELIX_USE_PHYSX
     //TODO: Check if actor is in the scene
 
     const auto rigidBody = collider->getComponent<RigidbodyComponent>();
@@ -268,7 +268,7 @@ void physics::PhysicsController::resizeCollider(const glm::vec3 &newSize, std::s
 
 #else
     ELIX_LOG_ERROR("Physics disabled: resizeCollider does nothing");
-#endif //ELIXIR_USE_PHYSX
+#endif //VELIX_USE_PHYSX
 }
 
 // physx::PxFilterData filterData;

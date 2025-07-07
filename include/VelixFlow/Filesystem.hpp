@@ -3,6 +3,8 @@
 
 #include <filesystem>
 #include <string>
+#include "DefaultMacros.hpp"
+#include "Logger.hpp"
 
 #if defined(_WIN32)
     #include <windows.h>
@@ -12,12 +14,38 @@
     #include <mach-o/dyld.h>
 #endif
 
-#include "DefaultMacros.hpp"
+
+
 
 ELIX_NAMESPACE_BEGIN
 
 namespace filesystem
 {
+    //TODO maybe make this better....
+    //TODO Wrap this inside try-catch?
+    inline std::pair<int, std::string> executeCommand(const std::string& command)
+    {
+        constexpr int kBufferSize = 128;
+        std::array<char, kBufferSize> buffer;
+        std::string result;
+
+#ifdef _WIN32
+        std::unique_ptr<FILE, decltype(&_pclose)> pipe(_popen(command.c_str(), "r"), _pclose);
+#else
+        std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(command.c_str(), "r"), pclose);
+#endif
+
+        if (!pipe)
+            ELIX_LOG_ERROR("Failed to execute command");
+
+        while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr)
+            result += buffer.data();
+
+        const int executionResult = std::system(command.c_str());
+
+        return {executionResult, result};
+    }
+
     inline std::filesystem::path getExecutablePath()
     {
     #if defined(_WIN32)
@@ -45,6 +73,20 @@ namespace filesystem
         return {};
     #endif
     }
+
+    inline void openInFileManager(const std::filesystem::path& path)
+    {
+        #ifdef _WIN32
+            std::string cmd = "explorer /select,\"" + path.string() + "\"";
+        #elif __APPLE__
+                std::string cmd = "open -R \"" + path.string() + "\"";
+        #else
+                std::string cmd = "xdg-open \"" + path.parent_path().string() + "\"";
+        #endif
+
+        executeCommand(cmd);
+    }
+
 
     inline std::filesystem::path getCurrentWorkingDirectory()
     {

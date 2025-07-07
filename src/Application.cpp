@@ -56,8 +56,8 @@ void elix::Application::update()
     m_camera->update(m_deltaTime);
 
     m_scene->update(m_deltaTime);
-
 }
+
 void elix::Application::endRender()
 {
     m_mainWindow->swapBuffers();

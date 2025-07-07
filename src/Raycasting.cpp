@@ -2,7 +2,7 @@
 
 bool physics::raycasting::shoot(const Ray &ray, RaycastingResult &result)
 {
-#ifdef ELIXIR_USE_PHYSX
+#ifdef VELIX_USE_PHYSX
     glm::vec3 direction = glm::normalize(ray.direction);
 
     physx::PxQueryFilterData filterData;
@@ -19,8 +19,8 @@ bool physics::raycasting::shoot(const Ray &ray, RaycastingResult &result)
 
     return status && hit.hasBlock;
 
-#elif
+#else
     return false;
 
-#endif //ELIXIR_USE_PHYSX
+#endif //VELIX_USE_PHYSX
 }

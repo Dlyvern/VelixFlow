@@ -25,6 +25,16 @@ namespace elix
         }
 
         template<typename T>
+        T* addAsset(const std::string& path, std::unique_ptr<T> asset)
+        {
+            static_assert(std::is_base_of<elix::Asset, T>::value, "T must derive from elix::Asset");
+
+            T* raw = asset.get();
+            m_assets[path] = std::move(asset);
+            return raw;
+        }
+
+        template<typename T>
         T* getAsset(const std::string& path)
         {
             if (const auto it = m_assets.find(path); it != m_assets.end())

@@ -24,6 +24,7 @@ namespace elix
         [[nodiscard]] std::string getName() const;
         [[nodiscard]] size_t getNumMeshes() const;
         [[nodiscard]] elix::Mesh* getMesh(int meshIndex);
+        [[nodiscard]] const std::vector<elix::Mesh>& getMeshes() const;
         [[nodiscard]] bool hasSkeleton() const;
     private:
         std::string m_name;

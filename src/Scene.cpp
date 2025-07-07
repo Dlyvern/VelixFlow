@@ -8,6 +8,7 @@
 #include "MeshComponent.hpp"
 #include "RigidbodyComponent.hpp"
 #include "ScriptComponent.hpp"
+#include "ScriptSystem.hpp"
 
 void Scene::update(float deltaTime)
 {
@@ -319,14 +320,21 @@ void Scene::loadSceneFromFile(const std::string &filePath, elix::AssetsCache& ca
                 {
                     gameObject->addComponent<AnimatorComponent>();
                 }
-                else if (componentJson["type"] == "ScriptComponent")
+                else if (componentJson["type"] == "ScriptsComponent")
                 {
                     auto* scriptComponent = gameObject->addComponent<ScriptComponent>();
 
                     if (componentJson.contains("scripts"))
                     {
                         for (auto& scriptEntry : componentJson["scripts"])
-                            scriptComponent->addScript(scriptEntry.get<std::string>());
+                        {
+                            auto script = elix::ScriptSystem::createScript(scriptEntry.get<std::string>());
+
+                            if(!script)
+                                ELIX_LOG_ERROR("Could not create script ", scriptEntry.get<std::string>());
+                            else
+                                scriptComponent->addScript(script);
+                        }
                     }
                 }
             }
