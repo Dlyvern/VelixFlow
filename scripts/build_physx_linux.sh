@@ -11,10 +11,23 @@ rm -rf "$PHYSX_ROOT/tmp"
 mkdir -p "$PHYSX_ROOT/tmp"
 cd "$PHYSX_ROOT/tmp"
 
-
 echo "[VelixFlow] Cloning NVIDIA PhysX SDK..."
 
 git clone https://github.com/NVIDIA-Omniverse/PhysX.git
+
+xml_file="PhysX/physx/buildtools/presets/public/linux-gcc.xml"
+
+echo [VelixFlow] Patching PhysX preset to disable GPU projects...
+
+if grep -q 'name="PX_GENERATE_GPU_PROJECTS"' "$xml_file"; then
+    sed -i -E 's@<([cC][mM][aA][kK][eE][sS][wW][iI][tT][cC][hH])[^>]*name="PX_GENERATE_GPU_PROJECTS"[^>]*value="True"@<\1 name="PX_GENERATE_GPU_PROJECTS" value="False"@g' "$xml_file"
+    echo "PhysX preset patched"
+fi
+
+if grep -q 'name="PX_GENERATE_GPU_PROJECTS_ONLY"' "$xml_file"; then
+    sed -i 's/\(<CMakeSwitch name="PX_GENERATE_GPU_PROJECTS_ONLY" value="\)[Tt]rue"/\1False"/' "$xml_file"
+    echo "PhysX preset patched"
+fi
 
 cd PhysX/physx
 echo "[VelixFlow] Generating build files..."

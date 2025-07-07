@@ -33,7 +33,7 @@ UIRender::UIRender()
 
 window::ClearFlag UIRender::getClearFlag()
 {
-
+    return window::ClearFlag::NONE;
 }
 
 bool UIRender::shouldExecute() const

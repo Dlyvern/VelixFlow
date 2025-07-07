@@ -16,6 +16,25 @@ git clone https://github.com/NVIDIA-Omniverse/PhysX.git
 
 cd PhysX\physx
 
+set "PRESET_FILE=%PHYSX_ROOT%\PhysX\physx\buildtools\presets\public\vc17win64.xml"
+
+if exist "%PRESET_FILE%" (
+    echo [VelixFlow] Patching PhysX preset to disable GPU projects...
+
+    rem Backup original preset just in case
+    copy /Y "%PRESET_FILE%" "%PRESET_FILE%.bak" >nul
+
+    rem Use powershell to replace PX_GENERATE_GPU_PROJECTS value True -> False
+    powershell -Command "(Get-Content -Path '%PRESET_FILE%') -replace '(<CMakeSwitch name=\"PX_GENERATE_GPU_PROJECTS\" value=\")True(\"/>)', '${1}False${2}' | Set-Content -Path '%PRESET_FILE%'"
+
+    rem Also disable PX_GENERATE_GPU_PROJECTS_ONLY if exists
+    powershell -Command "(Get-Content -Path '%PRESET_FILE%') -replace '(<CMakeSwitch name=\"PX_GENERATE_GPU_PROJECTS_ONLY\" value=\")True(\"/>)', '${1}False${2}' | Set-Content -Path '%PRESET_FILE%'"
+
+    echo [VelixFlow] PhysX preset patched.
+) else (
+    echo [VelixFlow] Warning: PhysX preset file not found: %PRESET_FILE%
+)
+
 echo [VelixFlow] Generating Visual Studio project files...
 generate_projects.bat vc17win64
 
@@ -32,4 +51,4 @@ echo [VelixFlow] Cleaning up PhysX source...
 cd "%PHYSX_ROOT%"
 rmdir /S /Q "tmp"
 
-echo [VelixFlow] ✅ PhysX built and installed to %PHYSX_LIB_OUTPUT%
+echo [VelixFlow] PhysX built and installed to %PHYSX_LIB_OUTPUT%
