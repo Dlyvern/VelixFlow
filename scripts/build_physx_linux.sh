@@ -37,7 +37,7 @@ cd compiler/linux-gcc-checked/
 make -j$(nproc)
 echo "[VelixFlow] Moving built .a files to ${PHYSX_LIB_OUTPUT}"
 mkdir -p "${PHYSX_LIB_OUTPUT}"
-find ../../bin/linux.clang/${PHYSX_BUILD_TYPE} -name "*.a" -exec cp {} "${PHYSX_LIB_OUTPUT}/" \;
+find ../../bin/linux.x86_64/${PHYSX_BUILD_TYPE} -name "*.a" -exec cp {} "${PHYSX_LIB_OUTPUT}/" \;
 
 echo "[VelixFlow] Cleaning up PhysX source..."
 cd "$PHYSX_ROOT"

@@ -76,10 +76,10 @@ jobs:
       - name: Build PhysX for Windows
         shell: cmd
         run: scripts\build_physx_windows.bat
-        
+
       - name: Configure and Build
         run: |
-          cmake -S . -B build -G Ninja -DVELIX_USE_PHYSX=OFF -DPHYSX_BUILD_TYPE=checked
+          cmake -S . -B build -G Ninja -DPHYSX_BUILD_TYPE=checked
           cmake --build build --config Debug
 
       - name: Install to Staging Dir
@@ -113,9 +113,6 @@ jobs:
 
       - name: Clean Previous Build
         run: rm -rf build
-
-      - name: Build PhysX
-        run: ./scripts/build_physx_linux.sh
 
       - name: Configure and Build
         run: |

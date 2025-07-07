@@ -44,8 +44,8 @@ set(FMOD_ROOT ${CMAKE_SOURCE_DIR}/external/fmod)
 
 option(VELIX_USE_PHYSX "Enable NVIDIA PhysX support" ON)
 
-if(WIN32)
-    message(WARNING "PhysX is not supported for windows build. Disabling PhysX")
+if(VELIX_PLATFORM_MACOS)
+    message(WARNING "PhysX is not supported on macOS. Disabling PhysX.")
     set(VELIX_USE_PHYSX OFF)
 endif()
 

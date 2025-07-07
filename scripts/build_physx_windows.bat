@@ -18,20 +18,19 @@ cd PhysX\physx
 
 set "PRESET_FILE=%PHYSX_ROOT%\PhysX\physx\buildtools\presets\public\vc17win64.xml"
 
+set "PRESET_FILE=%PHYSX_ROOT%\PhysX\physx\buildtools\presets\public\vc17win64.xml"
+
 if exist "%PRESET_FILE%" (
     echo [VelixFlow] Patching PhysX preset to disable GPU projects...
 
-    rem Backup original preset just in case
-    copy /Y "%PRESET_FILE%" "%PRESET_FILE%.bak" >nul
+    rem Escape " inside strings with ` (backtick) for PowerShell
+    powershell -Command "(Get-Content -Path '%PRESET_FILE%') -replace '(<CMakeSwitch name=`"PX_GENERATE_GPU_PROJECTS`" value=`")[Tt]rue(`"/>)', '`$1False`$2' | Set-Content -Path '%PRESET_FILE%'"
 
-    rem Use powershell to replace PX_GENERATE_GPU_PROJECTS value True -> False
-    powershell -Command "(Get-Content -Path '%PRESET_FILE%') -replace '(<CMakeSwitch name=\"PX_GENERATE_GPU_PROJECTS\" value=\")True(\"/>)', '${1}False${2}' | Set-Content -Path '%PRESET_FILE%'"
-
-    rem Also disable PX_GENERATE_GPU_PROJECTS_ONLY if exists
-    powershell -Command "(Get-Content -Path '%PRESET_FILE%') -replace '(<CMakeSwitch name=\"PX_GENERATE_GPU_PROJECTS_ONLY\" value=\")True(\"/>)', '${1}False${2}' | Set-Content -Path '%PRESET_FILE%'"
+    powershell -Command "(Get-Content -Path '%PRESET_FILE%') -replace '(<CMakeSwitch name=`"PX_GENERATE_GPU_PROJECTS_ONLY`" value=`")[Tt]rue(`"/>)', '`$1False`$2' | Set-Content -Path '%PRESET_FILE%'"
 
     echo [VelixFlow] PhysX preset patched.
-) else (
+)
+else (
     echo [VelixFlow] Warning: PhysX preset file not found: %PRESET_FILE%
 )
 
