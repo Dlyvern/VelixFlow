@@ -1,11 +1,10 @@
 #include "ScriptSystem.hpp"
-#include "LibrariesLoader.hpp"
 #include "Logger.hpp"
 
 ELIX_NAMESPACE_BEGIN
 
 static ScriptsRegister* s_register{nullptr};
-static void* s_library{nullptr};
+static LibraryHandle s_library{nullptr};
 
 bool ScriptSystem::loadLibrary(const std::string& path)
 {
@@ -58,7 +57,7 @@ ScriptsRegister* ScriptSystem::getRegister()
     return s_register;
 }
 
-void* ScriptSystem::getLibrary()
+LibraryHandle ScriptSystem::getLibrary()
 {
     return s_library;
 }

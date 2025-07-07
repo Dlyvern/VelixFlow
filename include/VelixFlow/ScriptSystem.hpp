@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include "LibrariesLoader.hpp"
 
 ELIX_NAMESPACE_BEGIN
 
@@ -17,7 +18,7 @@ public:
     static std::vector<std::string> getAvailableScripts();
     static std::shared_ptr<Script> createScript(const std::string& name);
     static ScriptsRegister* getRegister();
-    static void* getLibrary();
+    static LibraryHandle getLibrary();
 };
 
 ELIX_NAMESPACE_END

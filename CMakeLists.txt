@@ -2,16 +2,16 @@ cmake_minimum_required(VERSION 3.16)
 project(VelixFlow)
 
 if(WIN32)
-    set(Velix_PLATFORM "windows")
-    set(Velix_PLATFORM_WINDOWS ON)
+    set(VELIX_PLATFORM "windows")
+    set(VELIX_PLATFORM_WINDOWS ON)
     message(STATUS "Building for Windows platform")
 elseif(UNIX)
-    set(Velix_PLATFORM "linux")
-    set(Velix_PLATFORM_LINUX ON)
+    set(VELIX_PLATFORM "linux")
+    set(VELIX_PLATFORM_LINUX ON)
     message(STATUS "Building for Linux platform")
 elseif(APPLE)
-    set(Velix_PLATFORM "macos")
-    set(Velix_PLATFORM_MACOS ON)
+    set(VELIX_PLATFORM "macos")
+    set(VELIX_PLATFORM_MACOS ON)
     message(STATUS "Building for macOS platform")
 else()
     message(FATAL_ERROR "Unsupported platform!")
@@ -49,7 +49,7 @@ if(WIN32)
     set(VELIX_USE_PHYSX OFF)
 endif()
 
-if(Velix_PLATFORM_MACOS)
+if(VELIX_PLATFORM_MACOS)
     add_compile_options(-std=c++23)
     add_definitions(-DGL_SILENCE_DEPRECATION)
 
@@ -140,27 +140,22 @@ find_package(Threads REQUIRED)
 find_package(OpenGL REQUIRED)
 
 if(NOT TARGET OpenGL::OpenGL)
+    add_library(OpenGL::OpenGL INTERFACE IMPORTED)
+
     if(WIN32)
-        add_library(OpenGL::OpenGL UNKNOWN IMPORTED)
         set_target_properties(OpenGL::OpenGL PROPERTIES
-                IMPORTED_LOCATION "${CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES}/opengl32.lib"
-                INTERFACE_INCLUDE_DIRECTORIES "${OPENGL_INCLUDE_DIR}"
+            INTERFACE_LINK_LIBRARIES "opengl32"
+            INTERFACE_INCLUDE_DIRECTORIES "${OPENGL_INCLUDE_DIR}"
         )
-    elseif(APPLE OR UNIX)
-        if(OPENGL_gl_LIBRARY AND OPENGL_INCLUDE_DIR)
-            add_library(OpenGL::OpenGL UNKNOWN IMPORTED)
-            set_target_properties(OpenGL::OpenGL PROPERTIES
-                    IMPORTED_LOCATION "${OPENGL_gl_LIBRARY}"
-                    INTERFACE_INCLUDE_DIRECTORIES "${OPENGL_INCLUDE_DIR}"
-            )
-        else()
-            message(FATAL_ERROR "OpenGL library not found on Unix/macOS")
-        endif()
+    elseif(UNIX OR APPLE)
+        set_target_properties(OpenGL::OpenGL PROPERTIES
+            INTERFACE_LINK_LIBRARIES "${OPENGL_gl_LIBRARY}"
+            INTERFACE_INCLUDE_DIRECTORIES "${OPENGL_INCLUDE_DIR}"
+        )
     endif()
 endif()
 
-
-if(Velix_PLATFORM_WINDOWS)
+if(VELIX_PLATFORM_WINDOWS)
     add_definitions(-DNOMINMAX)
 endif()
 
@@ -264,7 +259,7 @@ target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
 target_link_libraries(${PROJECT_NAME} PRIVATE glad)
 
 # === Link Libraries ===
-if(Velix_PLATFORM_WINDOWS)
+if(VELIX_PLATFORM_WINDOWS)
     target_link_libraries(${PROJECT_NAME} PUBLIC
 #            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXExtensions_static_64.lib
 #            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysX_static_64.lib
@@ -280,7 +275,7 @@ if(Velix_PLATFORM_WINDOWS)
             Threads::Threads
 #            opengl32.lib
     )
-elseif(Velix_PLATFORM_MACOS)
+elseif(VELIX_PLATFORM_MACOS)
     target_link_libraries(${PROJECT_NAME} PUBLIC
             ${PHYSX_ROOT}/lib/linux/${PHYSX_BUILD_TYPE}/libPhysXExtensions_static_64.a
             ${PHYSX_ROOT}/lib/linux/${PHYSX_BUILD_TYPE}/libPhysX_static_64.a
@@ -355,7 +350,7 @@ install(TARGETS VelixFlow
         INCLUDES DESTINATION include
 )
 
-if(Velix_PLATFORM_WINDOWS)
+if(VELIX_PLATFORM_WINDOWS)
     install(FILES
         ${GLFW_ROOT}/lib/windows/glfw3.lib
 #        ${LIBZ_ROOT}/lib/windows/zlib.lib
@@ -378,7 +373,7 @@ if(Velix_PLATFORM_WINDOWS)
 
 endif()
 
-if(Velix_PLATFORM_LINUX)
+if(VELIX_PLATFORM_LINUX)
     set_target_properties(${PROJECT_NAME} PROPERTIES
         BUILD_RPATH "${FMOD_ROOT}/lib/linux"
         INSTALL_RPATH "$ORIGIN"
