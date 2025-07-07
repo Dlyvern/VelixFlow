@@ -39,4 +39,5 @@ void ShaderManager::preLoadShaders()
     m_shaders[EQUIRECTANGULAR_TO_CUBEMAP] = createShader(shader_equirectangular_to_cubemap_vert, shader_equirectangular_to_cubemap_frag);
     m_shaders[PARTICLE] = createShader(shader_particle_vert, shader_particle_frag);
     m_shaders[BILLBOARD] = createShader(shader_billboard_vert, shader_billboard_frag);
+    m_shaders[UI] = createShader(shader_ui_vert, shader_ui_frag);
 }

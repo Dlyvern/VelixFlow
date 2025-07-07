@@ -214,6 +214,12 @@ void elix::Shader::setMat4(const std::string& name, const glm::mat4& value) cons
     glUniformMatrix4fv(location, 1, GL_FALSE, &value[0][0]);
 }
 
+void elix::Shader::setVec2(const std::string& name, const glm::vec2& value) const
+{
+    const GLint location = getUniformLocation(name);
+    glUniform2fv(location, 1, &value[0]);
+}
+
 void elix::Shader::setVec3(const std::string& name, const glm::vec3 &value) const
 {
     const GLint location = getUniformLocation(name);

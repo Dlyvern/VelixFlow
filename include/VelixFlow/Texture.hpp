@@ -51,6 +51,7 @@ namespace elix
             int numberOfChannels{0};
             unsigned char* data{nullptr};
             TextureFormat format;
+            TextureFormat secondFormat;
         };
 
         enum class ParameterType

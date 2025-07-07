@@ -1,4 +1,4 @@
-name: Build ElixirCore
+name: Build VelixFlow
 
 on:
   push:
@@ -29,22 +29,25 @@ jobs:
       - name: Clean Previous Build
         run: rm -rf build
 
+      - name: Build PhysX
+        run: ./scripts/build_physx_linux.sh
+
       - name: Configure and Build
         run: |
-          cmake -S . -B build -G Ninja -DELIXIR_USE_PHYSX=OFF -DPHYSX_BUILD_TYPE=checked
+          cmake -S . -B build -G Ninja -DPHYSX_BUILD_TYPE=checked
           cmake --build build --config Debug
 
       - name: Install to Staging Dir
         run: cmake --install build --prefix staging
 
       - name: Create Archive
-        run: tar -czvf ElixirCore-linux.tar.gz -C staging .
+        run: tar -czvf VelixFlow-linux.tar.gz -C staging .
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ElixirCore-linux
-          path: ElixirCore-linux.tar.gz
+          name: VelixFlow-linux
+          path: VelixFlow-linux.tar.gz
 
   build-windows:
     runs-on: windows-latest
@@ -69,22 +72,27 @@ jobs:
           if (Test-Path build) {
             Remove-Item -Recurse -Force build
           }
+
+      - name: Build PhysX for Windows
+        shell: cmd
+        run: scripts\build_physx_windows.bat
+        
       - name: Configure and Build
         run: |
-          cmake -S . -B build -G Ninja -DELIXIR_USE_PHYSX=OFF -DPHYSX_BUILD_TYPE=checked
+          cmake -S . -B build -G Ninja -DVELIX_USE_PHYSX=OFF -DPHYSX_BUILD_TYPE=checked
           cmake --build build --config Debug
 
       - name: Install to Staging Dir
         run: cmake --install build --prefix staging
 
       - name: Create Archive
-        run: tar -czvf ElixirCore-windows.tar.gz -C staging .
+        run: tar -czvf VelixFlow-windows.tar.gz -C staging .
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ElixirCore-windows
-          path: ElixirCore-windows.tar.gz
+          name: VelixFlow-windows
+          path: VelixFlow-windows.tar.gz
 
   build-macos:
     runs-on: macos-latest
@@ -106,19 +114,22 @@ jobs:
       - name: Clean Previous Build
         run: rm -rf build
 
+      - name: Build PhysX
+        run: ./scripts/build_physx_linux.sh
+
       - name: Configure and Build
         run: |
-          cmake -S . -B build -G Ninja -DELIXIR_USE_PHYSX=OFF -DPHYSX_BUILD_TYPE=checked
+          cmake -S . -B build -G Ninja -DVELIX_USE_PHYSX=OFF -DPHYSX_BUILD_TYPE=checked
           cmake --build build --config Debug
 
       - name: Install to Staging Dir
         run: cmake --install build --prefix staging
 
       - name: Create Archive
-        run: tar -czvf ElixirCore-macos.tar.gz -C staging .
+        run: tar -czvf VelixFlow-macos.tar.gz -C staging .
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ElixirCore-macos
-          path: ElixirCore-macos.tar.gz
+          name: VelixFlow-macos
+          path: VelixFlow-macos.tar.gz

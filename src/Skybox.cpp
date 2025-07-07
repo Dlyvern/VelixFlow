@@ -108,21 +108,6 @@ void elix::Skybox::render(const glm::mat4& view, const glm::mat4& projection) co
 void elix::Skybox::loadFromHDR(const std::string &path)
 {
     m_assetPath = path;
-    // elix::Texture hdrTexture;
-    //
-    // elix::Texture::TextureParams hdrTextureParams;
-    //
-    // hdrTextureParams.generateMipmaps = false;
-    // hdrTextureParams.flipVertically = true;
-    // hdrTextureParams.wrapS = elix::Texture::TextureWrap::ClampToEdge;
-    // hdrTextureParams.wrapT = elix::Texture::TextureWrap::ClampToEdge;
-    // hdrTextureParams.useFloat = true;
-    // hdrTextureParams.bakingType = elix::Texture::BakingType::Float;
-    // hdrTextureParams.format = elix::Texture::TextureFormat::RGB;
-    //
-    // hdrTexture.load(path);
-    //
-    // hdrTexture.bake();
 
     stbi_set_flip_vertically_on_load(true);
     int width, height, nrComponents;
@@ -168,7 +153,6 @@ void elix::Skybox::loadFromHDR(const std::string &path)
         glm::lookAt(glm::vec3(0,0,0), glm::vec3( 0, 0,-1), glm::vec3(0,-1, 0)),
     };
 
-    // hdrTexture.bind();
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, hdrTexture);
 
@@ -176,7 +160,6 @@ void elix::Skybox::loadFromHDR(const std::string &path)
     convertShader->bind();
     convertShader->setInt("equirectangularMap", 0);
     convertShader->setMat4("projection", captureProjection);
-
 
     window::Window::setViewport(0, 0, CUBE_MAP_SIZE, CUBE_MAP_SIZE);
 
@@ -229,6 +212,7 @@ unsigned int elix::Skybox::loadCubemap(const std::vector<std::string>& faces)
             stbi_image_free(data);
         }
     }
+
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);

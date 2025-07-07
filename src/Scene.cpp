@@ -16,6 +16,17 @@ void Scene::update(float deltaTime)
         object->update(deltaTime);
 }
 
+void Scene::addUIElement(const std::shared_ptr<elix::ui::UIElement>& uiElement)
+{
+    m_uiElements.push_back(uiElement);
+}
+
+const std::vector<std::shared_ptr<elix::ui::UIElement>> Scene::getUIElements() const
+{
+    return m_uiElements;
+}
+
+
 const std::vector<std::shared_ptr<lighting::Light>>& Scene::getLights() const
 {
     return m_lights;

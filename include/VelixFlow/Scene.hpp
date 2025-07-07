@@ -6,11 +6,16 @@
 #include "Skybox.hpp"
 #include "AssetsCache.hpp"
 #include "Light.hpp"
+#include "UIElement.hpp"
 
 class Scene
 {
 public:
     void update(float deltaTime);
+
+    void addUIElement(const std::shared_ptr<elix::ui::UIElement>& uiElement);
+
+    const std::vector<std::shared_ptr<elix::ui::UIElement>> getUIElements() const;
 
     void setSkybox(const std::shared_ptr<elix::Skybox>& skybox);
 
@@ -35,6 +40,7 @@ public:
     void saveSceneToFile(const std::string& filePath);
     void loadSceneFromFile(const std::string& filePath, elix::AssetsCache& cache);
 private:
+    std::vector<std::shared_ptr<elix::ui::UIElement>> m_uiElements;
     std::vector<std::shared_ptr<lighting::Light>> m_lights;   
     std::vector<std::shared_ptr<GameObject>> m_objects;
     std::vector<std::shared_ptr<Drawable>> m_drawables;

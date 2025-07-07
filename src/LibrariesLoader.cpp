@@ -1,14 +1,16 @@
 #include "LibrariesLoader.hpp"
-
 #include <iostream>
+#include "Logger.hpp"
 
-LibraryHandle elix::LibrariesLoader::loadLibrary(const std::string &libraryPath)
+ELIX_NAMESPACE_BEGIN
+
+LibraryHandle LibrariesLoader::loadLibrary(const std::string &libraryPath)
 {
 #ifdef _WIN32
     HMODULE lib = LoadLibrary(libraryPath.c_str());
 
     if (!lib)
-        std::cerr << "LibrariesLoader::loadLibrary(): Failed to load library "<< libraryPath << std::endl;
+        ELIX_LOG_ERROR("Failed to load library ");
 
     return lib;
 #else
@@ -16,34 +18,34 @@ LibraryHandle elix::LibrariesLoader::loadLibrary(const std::string &libraryPath)
     void* handle = dlopen(libraryPath.c_str(), RTLD_LAZY);
 
     if (!handle)
-        std::cerr << "LibrariesLoader::loadLibrary(): Failed to load library "<< libraryPath << " " << dlerror() << std::endl;
+        ELIX_LOG_ERROR("Failed to load library ", dlerror());
 
     return handle;
 #endif
 }
 
-void* elix::LibrariesLoader::getFunction(const std::string &functionName, LibraryHandle library)
+void* LibrariesLoader::getFunction(const std::string &functionName, LibraryHandle library)
 {
 #ifdef _WIN32
     FARPROC function = GetProcAddress(library, functionName.c_str());
 
     if (!function)
-        std::cerr << "LibrariesLoader::getFunction(): Failed to get function " << functionName << std::endl;
+        ELIX_LOG_ERROR("Failed to get function");
 
-return reinterpret_cast<void*>(function);
+    return reinterpret_cast<void*>(function);
 #else
-
+ 
     void* function = dlsym(library, functionName.c_str());
 
     if (!function)
-        std::cerr << "LibrariesLoader::getFunction(): Failed to get function " << functionName << " " << dlerror() << std::endl;
+        ELIX_LOG_ERROR("Failed to get function ", dlerror());
 
     return function;
 
 #endif
 }
 
-void elix::LibrariesLoader::closeLibrary(LibraryHandle library)
+void LibrariesLoader::closeLibrary(LibraryHandle library)
 {
 #ifdef _WIN32
     FreeLibrary(library);
@@ -51,3 +53,5 @@ void elix::LibrariesLoader::closeLibrary(LibraryHandle library)
     dlclose(library);
 #endif
 }
+
+ELIX_NAMESPACE_END

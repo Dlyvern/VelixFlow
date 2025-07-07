@@ -23,6 +23,7 @@ public:
         SHADOW_DEBUG = 11,
         PARTICLE = 12,
         BILLBOARD = 13,
+        UI = 14
     };
 
     static ShaderManager& instance();

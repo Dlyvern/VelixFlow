@@ -2,6 +2,7 @@
 #define SCRIPTS_LOADER_HPP
 
 #include <string>
+#include "DefaultMacros.hpp"
 
 #ifdef _WIN32
     #include <windows.h>
@@ -11,7 +12,9 @@
     using LibraryHandle = void*;
 #endif
 
-namespace elix::LibrariesLoader
+ELIX_NAMESPACE_BEGIN
+
+namespace LibrariesLoader
 {
     LibraryHandle loadLibrary(const std::string& libraryPath);
     void* getFunction(const std::string& functionName, LibraryHandle library);
@@ -24,6 +27,8 @@ namespace elix::LibrariesLoader
         return reinterpret_cast<T>(rawFunc);
     }
 } //namespace LibrariesLoader
+
+ELIX_NAMESPACE_END
 
 #endif //SCRIPTS_LOADER_HPP
 

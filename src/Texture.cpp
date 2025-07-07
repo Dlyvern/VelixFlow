@@ -128,7 +128,7 @@ void elix::Texture::addDefaultParameters()
 
     addParameter(TextureUsage::Standard2D, ParameterType::WRAP_S, ParameterValue::REPEAT);
 
-    addParameter(TextureUsage::Standard2D, ParameterType::WRAP_T, ParameterValue::REPEAT);  
+    addParameter(TextureUsage::Standard2D, ParameterType::WRAP_T, ParameterValue::REPEAT);
 }
 
 void elix::Texture::create()
