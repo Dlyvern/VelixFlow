@@ -3,6 +3,7 @@
 
 #include <GLFW/glfw3.h>
 #include <string>
+#include "Image.hpp"
 
 namespace window
 {
@@ -28,12 +29,6 @@ namespace window
         NONE = 0 << 0
     };
 
-    enum class CullMode : uint8_t
-    {
-        FRONT = 0,
-        BACK = 1,
-    };
-
     inline ClearFlag operator|(ClearFlag a, ClearFlag b) {
         return static_cast<ClearFlag>(
             static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
@@ -55,46 +50,23 @@ namespace window
         [[nodiscard]] int getHeight() const;
         [[nodiscard]] int getWidth() const;
         [[nodiscard]] WindowData getWindowData() const;
-        [[nodiscard]] GLFWwindow* getOpenGLWindow() const;
-
+        [[nodiscard]] GLFWwindow* getGLFWWindow() const;
 
         static void pollEvents();
-
-        static float getTime();
-
-        static void setViewport(int x, int y, int width, int height);
-
-        static void clear(ClearFlag flags);
-
-        static void setCullMode(CullMode mode);
-
-        static void setDepthFunc(bool enabled);
-
-        static void lineWidth(float lineWidth);
-
-        void viewport() const;
 
         void swapBuffers() const;
 
         void setSize(int width, int height);
 
+        void setTitle(const std::string& name);
 
-        static void setVsync(bool enabled);
-
+        bool setWindowIcon(elix::Image& image);
     private:
         GLFWwindow* m_window{nullptr};
         WindowData m_currentWindowData{window::FULLSCREEN_WINDOW_DATA};
         bool m_hasFocus{false};
 
-
-        static inline int viewportX;
-        static inline int viewportY;
-        static inline int viewportWidth;
-        static inline int viewportHeight;
-
-
-        
-        const std::string m_windowName;
+        std::string m_windowName;
     };
 }
 

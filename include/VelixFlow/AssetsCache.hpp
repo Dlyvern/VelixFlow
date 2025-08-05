@@ -1,54 +1,59 @@
 #ifndef ASSETS_CACHE_HPP
 #define ASSETS_CACHE_HPP
 
-#include "Assets.hpp"
 #include <filesystem>
-#include "Logger.hpp"
+#include <memory>
+#include <unordered_map>
+#include <string>
 
-namespace elix
+#include "VelixFlow/Logger.hpp"
+#include "VelixFlow/Assets.hpp"
+#include "VelixFlow/DefaultMacros.hpp"
+
+ELIX_NAMESPACE_BEGIN
+
+class AssetsCache
 {
-    class AssetsCache
+public:
+    template<typename T>
+    std::vector<T*> getAllAssets()
     {
-    public:
-        elix::Asset* addAsset(const std::string& path, std::unique_ptr<elix::Asset> asset);
+        std::vector<T*> result;
 
-        template<typename T>
-        std::vector<T*> getAllAssets()
-        {
-            std::vector<T*> result;
+        for (const auto& [_, asset] : m_assets)
+            if (auto dynamicAsset = dynamic_cast<T*>(asset.get()))
+                result.push_back(dynamicAsset);
 
-            for (const auto& [_, asset] : m_assets)
-                if (auto dynamicAsset = dynamic_cast<T*>(asset.get()))
-                    result.push_back(dynamicAsset);
+        return result;
+    }
 
-            return result;
-        }
+    template<typename T>
+    T* addAsset(const std::string& path, std::unique_ptr<T> asset)
+    {
+        static_assert(std::is_base_of<Asset, T>::value, "T must derive from Asset");
 
-        template<typename T>
-        T* addAsset(const std::string& path, std::unique_ptr<T> asset)
-        {
-            static_assert(std::is_base_of<elix::Asset, T>::value, "T must derive from elix::Asset");
+        T* raw = asset.get();
+        m_assets[path] = std::move(asset);
+        return raw;
+    }
 
-            T* raw = asset.get();
-            m_assets[path] = std::move(asset);
-            return raw;
-        }
+    template<typename T>
+    T* getAsset(const std::string& path)
+    {
+        if (const auto it = m_assets.find(path); it != m_assets.end())
+            return dynamic_cast<T*>(it->second.get());
 
-        template<typename T>
-        T* getAsset(const std::string& path)
-        {
-            if (const auto it = m_assets.find(path); it != m_assets.end())
-                return dynamic_cast<T*>(it->second.get());
+        for (const auto& [pathToAsset, asset] : m_assets)
+            if (std::string justAName = std::filesystem::path(pathToAsset).filename().string(); justAName == path)
+                return dynamic_cast<T*>(asset.get());
 
-            for (const auto& [pathToAsset, asset] : m_assets)
-                if (std::string justAName = std::filesystem::path(pathToAsset).filename().string(); justAName == path)
-                    return dynamic_cast<T*>(asset.get());
+        return nullptr;
+    }
 
-            return nullptr;
-        }
+private:
+    std::unordered_map<std::string, std::unique_ptr<Asset>> m_assets;
+};
 
-    private:
-        std::unordered_map<std::string, std::unique_ptr<elix::Asset>> m_assets;
-    };
-} //namespace elix
+ELIX_NAMESPACE_END
+
 #endif //ASSETS_CACHE_HPP

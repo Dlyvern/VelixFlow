@@ -1,6 +1,8 @@
-#include "Skeleton.hpp"
-#include "Utilities.hpp"
+#include "VelixFlow/Skeleton.hpp"
+#include "VelixFlow/Utilities.hpp"
 #include <iostream>
+
+ELIX_NAMESPACE_BEGIN
 
 Skeleton::Skeleton()
 {
@@ -16,7 +18,7 @@ void Skeleton::addBone(aiBone *bone)
 
     if(!m_boneMap.contains(boneName))
     {
-        common::BoneInfo boneInfo;
+        BoneInfo boneInfo;
 
         boneInfo.name = boneName;
         boneInfo.offsetMatrix = utilities::convertMatrixToGLMFormat(bone->mOffsetMatrix);
@@ -29,7 +31,7 @@ void Skeleton::addBone(aiBone *bone)
     }
 }
 
-unsigned int Skeleton::addBone(const common::BoneInfo &bone)
+unsigned int Skeleton::addBone(const BoneInfo &bone)
 {
     if (m_boneMap.contains(bone.name))
         return m_bonesInfo[m_boneMap[bone.name]].id;
@@ -72,7 +74,7 @@ bool Skeleton::hasBone(const std::string &boneName) const
     return m_boneMap.contains(boneName);
 }
 
-common::BoneInfo* Skeleton::getBone(const std::string &boneName)
+Skeleton::BoneInfo* Skeleton::getBone(const std::string &boneName)
 {
     const int id = getBoneId(boneName);
 
@@ -82,7 +84,7 @@ common::BoneInfo* Skeleton::getBone(const std::string &boneName)
     return &m_bonesInfo[id];
 }
 
-common::BoneInfo* Skeleton::getBone(int boneID)
+Skeleton::BoneInfo* Skeleton::getBone(int boneID)
 {
     if (m_bonesInfo.size() < boneID)
         return nullptr;
@@ -90,7 +92,7 @@ common::BoneInfo* Skeleton::getBone(int boneID)
     return &m_bonesInfo[boneID];
 }
 
-common::BoneInfo* Skeleton::getParent()
+Skeleton::BoneInfo* Skeleton::getParent()
 {
     for (auto& bone : m_bonesInfo)
         if (bone.parentId == -1)
@@ -107,7 +109,7 @@ void Skeleton::calculateBindPoseTransforms()
 
     auto processBone = [this](int boneID, const glm::mat4 &parentTransform, auto&& self)->void
     {
-        common::BoneInfo& bone = m_bonesInfo[boneID];
+        BoneInfo& bone = m_bonesInfo[boneID];
         glm::mat4 globalTransform = parentTransform * bone.localBindTransform;
 
         m_bindPoseTransform[boneID] = globalTransform * bone.offsetMatrix;
@@ -135,3 +137,5 @@ const std::vector<glm::mat4>& Skeleton::getFinalMatrices()
 
     return m_finalBoneMatrices;
 }
+
+ELIX_NAMESPACE_END

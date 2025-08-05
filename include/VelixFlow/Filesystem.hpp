@@ -14,9 +14,6 @@
     #include <mach-o/dyld.h>
 #endif
 
-
-
-
 ELIX_NAMESPACE_BEGIN
 
 namespace filesystem

@@ -17,7 +17,6 @@ else()
     message(FATAL_ERROR "Unsupported platform!")
 endif()
 
-
 if(MSVC)
     add_compile_options(/Zc:preprocessor)
 endif()
@@ -29,18 +28,27 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(INCLUDE_DIR include/VelixFlow)
 set(SRC_DIR src)
 set(LIBRARIES_DIR libraries)
-set(EXTERNAL_DIR external)
-set(SHADERS_DST_DIR ${CMAKE_BINARY_DIR}/resources/shaders)
 
 set(GLM_ROOT ${CMAKE_SOURCE_DIR}/external/glm)
 set(PHYSX_ROOT ${CMAKE_SOURCE_DIR}/external/physx)
 set(GLFW_ROOT ${CMAKE_SOURCE_DIR}/external/glfw)
 set(ASSIMP_ROOT ${CMAKE_SOURCE_DIR}/external/assimp)
-set(GLAD_ROOT ${CMAKE_SOURCE_DIR}/external/glad)
 set(FREETYPE_ROOT ${CMAKE_SOURCE_DIR}/external/freetype)
 set(LIBZ_ROOT ${CMAKE_SOURCE_DIR}/external/libz)
 set(FMOD_ROOT ${CMAKE_SOURCE_DIR}/external/fmod)
 
+option(VELIX_USE_VULKAN "Use Vulkan rendering backend" ON)
+option(VELIX_USE_OPENGL "Use OpenGL rendering backend" OFF)
+
+if(VELIX_USE_VULKAN)
+    message("Using Vulkan")
+    add_subdirectory(backends/VelixVK)
+elseif(VELIX_USE_OPENGL)
+    message("Using OpenGL")
+    add_subdirectory(backends/VelixGL)
+else()
+    message("No rendering backend selected")
+endif()
 
 option(VELIX_USE_PHYSX "Enable NVIDIA PhysX support" ON)
 
@@ -48,17 +56,6 @@ if(VELIX_PLATFORM_MACOS)
     message(WARNING "PhysX is not supported on macOS. Disabling PhysX.")
     set(VELIX_USE_PHYSX OFF)
 endif()
-
-if(VELIX_PLATFORM_MACOS)
-    add_compile_options(-std=c++23)
-    add_definitions(-DGL_SILENCE_DEPRECATION)
-
-    find_library(COCOA_LIBRARY Cocoa)
-    find_library(OPENGL_LIBRARY OpenGL)
-    find_library(IOKIT_LIBRARY IOKit)
-    find_library(COREVIDEO_LIBRARY CoreVideo)
-endif()
-
 
 set(PHYSX_BUILD_TYPE "checked" CACHE STRING "The build type of PhysX")
 
@@ -134,59 +131,12 @@ else()
     message(FATAL_ERROR "Unsupported platform")
 endif()
 
-
 # === External Dependencies ===
 find_package(Threads REQUIRED)
-find_package(OpenGL REQUIRED)
-
-if(NOT TARGET OpenGL::OpenGL)
-    add_library(OpenGL::OpenGL INTERFACE IMPORTED)
-
-    if(WIN32)
-        set_target_properties(OpenGL::OpenGL PROPERTIES
-            INTERFACE_LINK_LIBRARIES "opengl32"
-            INTERFACE_INCLUDE_DIRECTORIES "${OPENGL_INCLUDE_DIR}"
-        )
-    elseif(UNIX OR APPLE)
-        set_target_properties(OpenGL::OpenGL PROPERTIES
-            INTERFACE_LINK_LIBRARIES "${OPENGL_gl_LIBRARY}"
-            INTERFACE_INCLUDE_DIRECTORIES "${OPENGL_INCLUDE_DIR}"
-        )
-    endif()
-endif()
 
 if(VELIX_PLATFORM_WINDOWS)
     add_definitions(-DNOMINMAX)
 endif()
-
-# === Baking shaders ===
-
-file(GLOB SHADERS "${CMAKE_CURRENT_SOURCE_DIR}/resources/shaders/*.vert"
-        "${CMAKE_CURRENT_SOURCE_DIR}/resources/shaders/*.frag")
-
-set(EMBEDDED_SHADER_SOURCES "")
-
-foreach(SHADER ${SHADERS})
-    get_filename_component(FILENAME ${SHADER} NAME)              # e.g., "text.vert"
-    get_filename_component(FILENAME_WE ${SHADER} NAME_WE)        # e.g., "text"
-
-    string(REPLACE "." "_" VAR_NAME ${FILENAME})                 # e.g., "text_vert"
-
-    set(OUTPUT_CPP "${CMAKE_CURRENT_BINARY_DIR}/embedded_shaders/${FILENAME}.cpp")
-
-    add_custom_command(
-            OUTPUT ${OUTPUT_CPP}
-            COMMAND ${CMAKE_COMMAND}
-            -DINPUT=${SHADER}
-            -DOUTPUT=${OUTPUT_CPP}
-            -DVAR_NAME=${VAR_NAME}
-            -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/embed_shader.cmake
-            DEPENDS ${SHADER}
-            COMMENT "Embedding shader: ${FILENAME}"
-    )
-
-    list(APPEND EMBEDDED_SHADER_SOURCES ${OUTPUT_CPP})
-endforeach()
 
 
 set(PHYSX_LIB_DIR "${PHYSX_ROOT}/lib/${VELIX_PLATFORM}/${PHYSX_BUILD_TYPE}")
@@ -223,19 +173,8 @@ else()
 endif()
 
 
-# === End baking shaders ===
-
-add_library(glad STATIC external/glad/src/glad.c)
-target_include_directories(glad
-        PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/external/glad/include>
-        $<INSTALL_INTERFACE:include/VelixFlow/glad>
-)
-
-set_target_properties(glad PROPERTIES POSITION_INDEPENDENT_CODE ON)
-
 # === Create Static Library ===
-add_library(${PROJECT_NAME} STATIC ${PROJECT_HEADERS} ${PROJECT_SOURCES}  ${EMBEDDED_SHADER_SOURCES})
+add_library(${PROJECT_NAME} STATIC ${PROJECT_HEADERS} ${PROJECT_SOURCES})
 add_library(Velix::VelixFlow ALIAS VelixFlow)
 set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
@@ -251,21 +190,17 @@ elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     # MSVC (Windows), do nothing
 endif()
 
-
 target_compile_definitions(${PROJECT_NAME} PUBLIC VELIX_USE_PHYSX=$<BOOL:${VELIX_USE_PHYSX}>)
 
 # === Public Includes ===
 target_include_directories(${PROJECT_NAME} PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/${LIBRARIES_DIR}>
 
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/VelixFlow>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/>
         $<INSTALL_INTERFACE:include>
 
         $<BUILD_INTERFACE:${GLFW_ROOT}/include/>
         $<INSTALL_INTERFACE:include/VelixFlow/glfw>
-
-        $<BUILD_INTERFACE:${GLAD_ROOT}/include/>
-        $<INSTALL_INTERFACE:include/VelixFlow/glad>
 
         $<BUILD_INTERFACE:${FREETYPE_ROOT}/include/>
         $<INSTALL_INTERFACE:include/VelixFlow/freetype>
@@ -275,8 +210,6 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 
         $<BUILD_INTERFACE:${ASSIMP_ROOT}/include/>
         $<INSTALL_INTERFACE:include/VelixFlow/assimp>
-
-        ${OPENGL_INCLUDE_DIRS}
 )
 
 #Just to supress warnings on Macos and Windows
@@ -291,8 +224,6 @@ target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
         $<INSTALL_INTERFACE:include/VelixFlow/PhysX>
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE glad)
-
 # === Link Libraries ===
 if(VELIX_PLATFORM_WINDOWS)
     target_link_libraries(${PROJECT_NAME} PUBLIC
@@ -302,13 +233,11 @@ if(VELIX_PLATFORM_WINDOWS)
 #            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXCommon_static_64.lib
 #            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXFoundation_static_64.lib
 #            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXCharacterKinematic_static_64.lib
-            OpenGL::OpenGL
 #            ${LIBZ_ROOT}/lib/windows/zlib.lib
             ${GLFW_ROOT}/lib/windows/glfw3.lib
             assimp
             ${FREETYPE_ROOT}/lib/windows/freetype.lib
             Threads::Threads
-#            opengl32.lib
     )
 elseif(VELIX_PLATFORM_MACOS)
     target_link_libraries(${PROJECT_NAME} PUBLIC
@@ -325,7 +254,6 @@ elseif(VELIX_PLATFORM_MACOS)
             ${FREETYPE_ROOT}/lib/linux/libfreetype.a
             ${LIBZ_ROOT}/lib/linux/libz.a
             ${COCOA_LIBRARY}
-            ${OPENGL_LIBRARY}
             ${IOKIT_LIBRARY}
             ${COREVIDEO_LIBRARY}
             Threads::Threads
@@ -340,7 +268,6 @@ else()
             ${PHYSX_ROOT}/lib/linux/${PHYSX_BUILD_TYPE}/libPhysXFoundation_static_64.a
             ${PHYSX_ROOT}/lib/linux/${PHYSX_BUILD_TYPE}/libPhysXCharacterKinematic_static_64.a
             -Wl,--end-group
-            OpenGL::OpenGL
             ${GLFW_ROOT}/lib/linux/libglfw3.a
             ${FMOD_ROOT}/lib/linux/libfmod.so.14.8
 #            ${ASSIMP_ROOT}/lib/linux/libassimp.a
@@ -351,25 +278,9 @@ else()
     )
 endif()
 
-
-set(HEADER_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/EmbeddedShaders.hpp")
-
-file(WRITE ${HEADER_OUTPUT} "// Auto-generated header for embedded shaders\n")
-file(APPEND ${HEADER_OUTPUT} "#pragma once\n\n")
-
-foreach(SHADER_CPP ${EMBEDDED_SHADER_SOURCES})
-    get_filename_component(FILENAME ${SHADER_CPP} NAME)
-
-    string(REPLACE ".cpp" "" BASENAME ${FILENAME})
-
-    string(REPLACE "." "_" VAR_NAME ${BASENAME})
-
-    file(APPEND ${HEADER_OUTPUT} "extern const char* shader_${VAR_NAME};\n")
-endforeach()
-
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-
-install(TARGETS VelixFlow glad
+target_include_directories(${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
+        
+install(TARGETS VelixFlow
         EXPORT VelixFlowTargets
         ARCHIVE DESTINATION lib
         LIBRARY DESTINATION lib
@@ -389,10 +300,8 @@ install(DIRECTORY ${PHYSX_ROOT}/include/ DESTINATION include/VelixFlow/PhysX)
 install(DIRECTORY ${GLM_ROOT}/include/ DESTINATION include/VelixFlow/glm)
 install(DIRECTORY ${GLFW_ROOT}/include/ DESTINATION include/VelixFlow/glfw)
 install(DIRECTORY ${ASSIMP_ROOT}/include/ DESTINATION include/VelixFlow/assimp)
-install(DIRECTORY ${GLAD_ROOT}/include/ DESTINATION include/VelixFlow/glad)
 install(DIRECTORY ${FREETYPE_ROOT}/include/ DESTINATION include/VelixFlow/freetype)
 install(DIRECTORY ${FMOD_ROOT}/include/ DESTINATION include/VelixFlow/fmod)
-
 
 # === Install CMake Config Package ===
 install(EXPORT VelixFlowTargets
@@ -419,227 +328,3 @@ install(FILES
         "${CMAKE_CURRENT_BINARY_DIR}/VelixFlowConfigVersion.cmake"
         DESTINATION lib/cmake/VelixFlow
 )
-
-
-# # === Public Includes ===
-# target_include_directories(${PROJECT_NAME} PUBLIC
-#         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/${LIBRARIES_DIR}>
-
-#         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/VelixFlow>
-#         $<INSTALL_INTERFACE:include>
-
-#         $<BUILD_INTERFACE:${GLFW_ROOT}/include/>
-#         $<INSTALL_INTERFACE:include/VelixFlow/glfw>
-
-#         $<BUILD_INTERFACE:${GLAD_ROOT}/include/>
-#         $<INSTALL_INTERFACE:include/VelixFlow/glad>
-
-#         $<BUILD_INTERFACE:${FREETYPE_ROOT}/include/>
-#         $<INSTALL_INTERFACE:include/VelixFlow/freetype>
-
-#         $<BUILD_INTERFACE:${FMOD_ROOT}/include/>
-#         $<INSTALL_INTERFACE:include/VelixFlow/fmod>
-
-#         $<BUILD_INTERFACE:${ASSIMP_ROOT}/include/>
-#         $<INSTALL_INTERFACE:include/VelixFlow/assimp>
-
-#         ${OPENGL_INCLUDE_DIRS}
-# )
-
-# #Just to supress warnings on Macos and Windows
-# target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
-#     $<BUILD_INTERFACE:${GLM_ROOT}/include/>
-#     $<INSTALL_INTERFACE:include/VelixFlow/glm>
-# )
-
-# #Just to supress warnings on Macos and Windows
-# target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
-#         $<BUILD_INTERFACE:${PHYSX_ROOT}/include/>
-#         $<INSTALL_INTERFACE:include/VelixFlow/PhysX>
-# )
-
-
-# function(add_imported_library target_name lib_type root_dir include_dir global_flag is_shared shared_name)
-#     if(NOT global_flag)
-#         set(global_flag ON)
-#     endif()
-
-#     add_library(${target_name} ${lib_type} IMPORTED ${global_flag})
-
-#     if(${VELIX_PLATFORM} STREQUAL "windows")
-#         set(lib_path "${root_dir}/lib/windows/${target_name}.lib")
-#     elseif(${VELIX_PLATFORM} STREQUAL "linux")
-#         set(lib_path "${root_dir}/lib/linux/lib${target_name}.a")
-#     elseif(${VELIX_PLATFORM} STREQUAL "macos")
-#         set(lib_path "${root_dir}/lib/linux/lib${target_name}.a")
-#     else()
-#         message(FATAL_ERROR "Unsupported platform ${VELIX_PLATFORM} for target ${target_name}")
-#     endif()
-
-#     if(${is_shared} STREQUAL "ON")
-#         message("SHARED SHIT")
-#         set(lib_path "${root_dir}/lib/linux/${shared_name}")
-#     endif()
-
-#     set_target_properties(${target_name} PROPERTIES
-#         IMPORTED_LOCATION "${lib_path}"
-#         INTERFACE_INCLUDE_DIRECTORIES "$<BUILD_INTERFACE:${include_dir}>;$<INSTALL_INTERFACE:include>"
-#     )
-# endfunction()
-
-# # add_imported_library(fmod STATIC ${FMOD_ROOT} "${FMOD_ROOT}/include" ON ON "libfmod.so.14.8")
-# add_imported_library(glfw3 STATIC ${GLFW_ROOT} "${GLFW_ROOT}/include" ON OFF "")
-# add_imported_library(freetype STATIC ${FREETYPE_ROOT} "${FREETYPE_ROOT}/include" ON OFF "")
-# add_imported_library(libz STATIC ${LIBZ_ROOT} "${LIBZ_ROOT}/include" ON OFF "")
-
-# add_library(PhysXLibs INTERFACE)
-# add_library(Velix::PhysX ALIAS PhysXLibs)
-
-# set(PHYSX_LIB_DIR "${PHYSX_ROOT}/lib/${VELIX_PLATFORM}/${PHYSX_BUILD_TYPE}")
-
-# if(VELIX_PLATFORM_WINDOWS)
-#     set(PHYSX_LIBS
-#     "${PHYSX_LIB_DIR}/PhysXExtensions_static_64.lib"
-#     "${PHYSX_LIB_DIR}/PhysX_static_64.lib"
-#     "${PHYSX_LIB_DIR}/PhysXPvdSDK_static_64.lib"
-#     "${PHYSX_LIB_DIR}/PhysXCommon_static_64.lib"
-#     "${PHYSX_LIB_DIR}/PhysXFoundation_static_64.lib"
-#     "${PHYSX_LIB_DIR}/PhysXCharacterKinematic_static_64.lib"
-#     )
-# elseif(VELIX_PLATFORM_LINUX)
-# set(PHYSX_LIBS
-#     "${PHYSX_LIB_DIR}/libPhysXExtensions_static_64.a"
-#     "${PHYSX_LIB_DIR}/libPhysX_static_64.a"
-#     "${PHYSX_LIB_DIR}/libPhysXPvdSDK_static_64.a"
-#     "${PHYSX_LIB_DIR}/libPhysXCommon_static_64.a"
-#     "${PHYSX_LIB_DIR}/libPhysXFoundation_static_64.a"
-#     "${PHYSX_LIB_DIR}/libPhysXCharacterKinematic_static_64.a"
-# )
-# endif()
-
-# target_link_libraries(PhysXLibs INTERFACE ${PHYSX_LIBS})
-
-# target_include_directories(PhysXLibs INTERFACE
-#     $<BUILD_INTERFACE:${PHYSX_ROOT}/include>
-#     $<INSTALL_INTERFACE:include>)
-
-
-# # === Link Libraries ===
-# if(VELIX_PLATFORM_WINDOWS)
-#     target_link_libraries(${PROJECT_NAME} PUBLIC
-#         glfw3
-#         freetype
-#         glad
-#         OpenGL::OpenGL
-#         assimp
-#         Threads::Threads
-#         Velix::PhysX
-#     )
-# elseif(VELIX_PLATFORM_MACOS)
-#     target_link_libraries(${PROJECT_NAME} PUBLIC
-#             glfw3
-#             assimp
-#             glad
-#             freetype
-#             ${COCOA_LIBRARY}
-#             ${OPENGL_LIBRARY}
-#             ${IOKIT_LIBRARY}
-#             ${COREVIDEO_LIBRARY}
-#             ${FMOD_ROOT}/lib/linux/libfmod.so.14.8
-#             Threads::Threads
-#     )
-# else()
-#     target_link_libraries(${PROJECT_NAME} PUBLIC
-#             glfw3
-#             assimp
-#             ${FMOD_ROOT}/lib/linux/libfmod.so.14.8
-#             glad
-#             freetype
-#             OpenGL::OpenGL
-#             Threads::Threads
-#             Velix::PhysX
-#     )
-
-# endif()
-
-# set(HEADER_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/EmbeddedShaders.hpp")
-
-# file(WRITE ${HEADER_OUTPUT} "// Auto-generated header for embedded shaders\n")
-# file(APPEND ${HEADER_OUTPUT} "#pragma once\n\n")
-
-# foreach(SHADER_CPP ${EMBEDDED_SHADER_SOURCES})
-#     get_filename_component(FILENAME ${SHADER_CPP} NAME)
-
-#     string(REPLACE ".cpp" "" BASENAME ${FILENAME})
-
-#     string(REPLACE "." "_" VAR_NAME ${BASENAME})
-
-#     file(APPEND ${HEADER_OUTPUT} "extern const char* shader_${VAR_NAME};\n")
-# endforeach()
-
-# target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-
-# install(TARGETS
-#         VelixFlow
-#         glad
-#         PhysXLibs
-#         EXPORT VelixFlowTargets
-#         ARCHIVE DESTINATION lib
-#         LIBRARY DESTINATION lib
-#         RUNTIME DESTINATION bin
-#         INCLUDES DESTINATION include
-# )
-
-# if(VELIX_PLATFORM_WINDOWS)
-#     install(FILES
-#         ${GLFW_ROOT}/lib/windows/glfw3.lib
-#         ${FREETYPE_ROOT}/lib/windows/freetype.lib   
-#        ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXExtensions_static_64.lib
-#        ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysX_static_64.lib
-#        ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXPvdSDK_static_64.lib
-#        ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXCommon_static_64.lib
-#        ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXFoundation_static_64.lib
-#        ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXCharacterKinematic_static_64.lib
-
-#         DESTINATION lib
-#     )
-
-#     # install(FILES ${LIBZ_ROOT}/lib/windows/zlib1.dll DESTINATION bin)
-
-# endif()
-
-# install(DIRECTORY include/ DESTINATION include)
-# install(DIRECTORY ${PHYSX_ROOT}/include/ DESTINATION include/VelixFlow/PhysX)
-# install(DIRECTORY ${GLM_ROOT}/include/ DESTINATION include/VelixFlow/glm)
-# install(DIRECTORY ${GLFW_ROOT}/include/ DESTINATION include/VelixFlow/glfw)
-# install(DIRECTORY ${ASSIMP_ROOT}/include/ DESTINATION include/VelixFlow/assimp)
-# install(DIRECTORY ${GLAD_ROOT}/include/ DESTINATION include/VelixFlow/glad)
-# install(DIRECTORY ${FREETYPE_ROOT}/include/ DESTINATION include/VelixFlow/freetype)
-# install(DIRECTORY ${FMOD_ROOT}/include/ DESTINATION include/VelixFlow/fmod)
-
-
-# # === Install CMake Config Package ===
-# install(EXPORT VelixFlowTargets
-#         FILE VelixFlowTargets.cmake
-#         NAMESPACE Velix::
-#         DESTINATION lib/cmake/VelixFlow
-# )
-
-# include(CMakePackageConfigHelpers)
-# write_basic_package_version_file(
-#         "${CMAKE_CURRENT_BINARY_DIR}/VelixFlowConfigVersion.cmake"
-#         VERSION 1.0.0
-#         COMPATIBILITY SameMajorVersion
-# )
-
-# configure_package_config_file(
-#         "${CMAKE_CURRENT_SOURCE_DIR}/cmake/VelixFlowConfig.cmake.in"
-#         "${CMAKE_CURRENT_BINARY_DIR}/VelixFlowConfig.cmake"
-#         INSTALL_DESTINATION lib/cmake/VelixFlow
-# )
-
-# install(FILES
-#         "${CMAKE_CURRENT_BINARY_DIR}/VelixFlowConfig.cmake"
-#         "${CMAKE_CURRENT_BINARY_DIR}/VelixFlowConfigVersion.cmake"
-#         DESTINATION lib/cmake/VelixFlow
-# )

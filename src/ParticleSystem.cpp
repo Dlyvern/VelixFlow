@@ -1,5 +1,5 @@
-#include "ParticleSystem.hpp"
-#include "ParticleEmitter.hpp"
+#include "VelixFlow/ParticleSystem.hpp"
+#include "VelixFlow/ParticleEmitter.hpp"
 
 
 void elix::ParticleSystem::update(float deltaTime)

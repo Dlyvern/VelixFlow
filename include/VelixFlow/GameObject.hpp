@@ -1,15 +1,18 @@
 #ifndef GAME_OBJECT_HPP
 #define GAME_OBJECT_HPP
 
+#include "VelixFlow/Components/Component.hpp"
+#include "VelixFlow/Signal.hpp"
+#include "VelixFlow/DefaultMacros.hpp"
+#include "VelixFlow/LayerMask.hpp"
+
+#include <glm/vec3.hpp>
+#include <glm/mat4x4.hpp>
+
 #include <functional>
 #include <memory>
 #include <typeindex>
 #include <unordered_map>
-
-#include "Common.hpp"
-#include "Component.hpp"
-#include "Signal.hpp"
-
 
 template<typename T>
 struct IsMultiComponent {
@@ -21,36 +24,50 @@ struct IsMultiComponent<class AudioComponent> {
     static constexpr bool value = true;
 };
 
+ELIX_NAMESPACE_BEGIN
+
 class GameObject
 {
 public:
-    explicit GameObject(const std::string&name);
+    explicit GameObject(const std::string&name) : m_name(name) {}
 
-    virtual void setLayerMask(const common::LayerMask& layerMask);
-    virtual void setPosition(const glm::vec3& position);
-    virtual void setScale(const glm::vec3& scale);
-    virtual void setRotation(const glm::vec3 &axis);
-    virtual void setName(const std::string& name);
+    void setLayerMask(const LayerMask& layerMask)
+    {
+        m_layerMask= layerMask;
+    }
 
-    elix::Signal<const glm::vec3&> positionChanged;
-    elix::Signal<const glm::mat4&> transformationChanged;
+    void setName(const std::string& name)
+    {
+        m_name = name;
+    }
 
-    [[nodiscard]] glm::vec3 getPosition() const;
-    [[nodiscard]] glm::vec3 getScale() const;
-    [[nodiscard]] glm::vec3 getRotation() const;
-    [[nodiscard]] const common::LayerMask& getLayerMask() const;
-    [[nodiscard]] const std::string& getName() const;
-    glm::mat4 getTransformMatrix();
-    void setTransformMatrix(const glm::mat4& transformMatrix);
+    [[nodiscard]] const LayerMask& getLayerMask() const
+    {
+        return m_layerMask;
+    }
 
-    virtual void destroy();
-    virtual void update(float deltaTime);
+    [[nodiscard]] const std::string& getName() const
+    {
+        return m_name;
+    }
+
+    virtual void destroy()
+    {
+        for (auto& component : m_components)
+            component.second->destroy();
+    }
+
+    virtual void update(float deltaTime)
+    {
+        for (auto& [_, comp] : m_components)
+            comp->update(deltaTime);
+    }
 
     template<typename T, typename... Args>
     T* addComponent(Args&&... args)
     {
         static_assert(!std::is_abstract_v<T>, "GameObject::addComponent() Cannot add abstract component!");
-        static_assert(std::is_base_of_v<Component, T>, "GameObject::addComponent() T must derive from Component class");
+        static_assert(std::is_base_of_v<components::IComponent, T>, "GameObject::addComponent() T must derive from IComponent class");
 
         const auto type = std::type_index(typeid(T));
         auto comp = std::make_shared<T>(std::forward<Args>(args)...);
@@ -112,17 +129,14 @@ public:
         return m_components.contains(std::type_index(typeid(T)));
     }
 
-    virtual ~GameObject();
+    virtual ~GameObject() = default;
 private:
-    glm::mat4 m_transformMatrix;
-    bool m_isTransformMatrixDirty{true};
-    std::unordered_map<std::type_index, std::shared_ptr<Component>> m_components;
-    std::unordered_map<std::type_index, std::vector<std::shared_ptr<Component>>> m_multiComponents;
-    common::LayerMask m_layerMask{common::LayerMask::DEFAULT};
-    glm::vec3 m_position{glm::vec3(0.0f, 0.0f, 0.0f)};
-    glm::vec3 m_scale{glm::vec3(1.0f, 1.0f, 1.0f)};
-    glm::vec3 m_rotation{0.0f};
+    std::unordered_map<std::type_index, std::shared_ptr<components::IComponent>> m_components;
+    std::unordered_map<std::type_index, std::vector<std::shared_ptr<components::IComponent>>> m_multiComponents;
+    LayerMask m_layerMask{LayerMask::DEFAULT};
     std::string m_name;
 };
+
+ELIX_NAMESPACE_END
 
 #endif //GAME_OBJECT_HPP

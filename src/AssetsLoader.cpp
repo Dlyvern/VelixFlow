@@ -1,19 +1,24 @@
-#include "AssetsLoader.hpp"
+#include "VelixFlow/AssetsLoader.hpp"
 
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
-
-#include "Mesh.hpp"
-#include "stb/stb_image.h"
+#include "VelixFlow/Logger.hpp"
+#include "VelixFlow/Utilities.hpp"
+#include "VelixFlow/Skeleton.hpp"
+#include "VelixFlow/Vertex.hpp"
+#include "VelixFlow/Animation.hpp"
 
 #include <filesystem>
-#include <json/json.hpp>
+#include "json/json.hpp"
 
-#include "Logger.hpp"
-#include "Utilities.hpp"
+#include "VelixFlow/MeshFactory.hpp"
+#include "VelixFlow/TextureFactory.hpp"
 
-std::unique_ptr<elix::Asset> elix::AssetsLoader::loadAsset(const std::string &filePath, elix::AssetsCache* cache)
+
+ELIX_NAMESPACE_BEGIN
+
+std::unique_ptr<Asset> AssetsLoader::loadAsset(const std::string &filePath, AssetsCache* cache)
 {
     if (auto texture = loadTexture(filePath))
         return texture;
@@ -25,25 +30,23 @@ std::unique_ptr<elix::Asset> elix::AssetsLoader::loadAsset(const std::string &fi
         if (auto material = loadMaterial(filePath, cache))
             return material;
 
-    ELIX_LOG_WARN("Failed to load asset from %s", filePath.c_str());
+    ELIX_LOG_WARN("Failed to load asset: ", filePath);
 
     return nullptr;
 }
 
-std::unique_ptr<elix::AssetTexture> elix::AssetsLoader::loadTexture(const std::string &filePath)
+std::unique_ptr<AssetTexture> AssetsLoader::loadTexture(const std::string &filePath)
 {
-    int width, height, channels;
+    std::unique_ptr<texture::ITexture> texture = texture::TextureFactory::createTexture(filePath);
 
-    if (stbi_load(filePath.c_str(), &width, &height, &channels, 0))
+    if(texture && texture->load(filePath))
     {
-        auto texture = std::make_unique<elix::Texture>(filePath);
         ELIX_LOG_INFO("Loaded texture ", filePath.c_str());
-        return std::make_unique<elix::AssetTexture>(std::move(texture));
+        return std::make_unique<AssetTexture>(std::move(texture));
     }
 
     return nullptr;
 }
-
 
 void generateBoneHierarchy(const int parentId, const aiNode* src, Skeleton* skeleton, const glm::mat4& parentTransform)
 {
@@ -66,12 +69,12 @@ void generateBoneHierarchy(const int parentId, const aiNode* src, Skeleton* skel
         // If the bone isn't in the skeleton, create a new one to preserve hierarchy
         boneID = skeleton->getBonesCount();
 
-        common::BoneInfo newBone(nodeName, boneID, utilities::convertMatrixToGLMFormat(src->mTransformation), glm::mat4(1.0f));
+        Skeleton::BoneInfo newBone(nodeName, boneID, utilities::convertMatrixToGLMFormat(src->mTransformation), glm::mat4(1.0f));
 
         boneID = skeleton->addBone(newBone);
     }
 
-    common::BoneInfo* currentBone = skeleton->getBone(boneID);
+    Skeleton::BoneInfo* currentBone = skeleton->getBone(boneID);
 
     currentBone->globalBindTransform = globalTransform;
 
@@ -95,14 +98,14 @@ void assignLocalBindTransforms(aiNode* node, Skeleton* skeleton)
         assignLocalBindTransforms(node->mChildren[i], skeleton);
 }
 
-elix::Mesh processMesh(aiMesh* mesh, const aiScene* const scene, Skeleton* skeleton)
+std::shared_ptr<mesh::IMesh> processMesh(aiMesh* mesh, const aiScene* const scene, Skeleton* skeleton)
 {
-    std::vector<common::Vertex> vertices;
+    std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
 
     for(unsigned int j = 0; j < mesh->mNumVertices; j++)
     {
-        common::Vertex vertex;
+        Vertex vertex;
 
         for (int i = 0; i < 4; i++)
         {
@@ -150,7 +153,7 @@ elix::Mesh processMesh(aiMesh* mesh, const aiScene* const scene, Skeleton* skele
         {
             const auto boneWeight = bone->mWeights[bonesWeightIndex];
 
-            common::Vertex& vertexBoneData = vertices[boneWeight.mVertexId];
+            Vertex& vertexBoneData = vertices[boneWeight.mVertexId];
 
             for(int f = 0; f < 4; ++f)
             {
@@ -171,10 +174,16 @@ elix::Mesh processMesh(aiMesh* mesh, const aiScene* const scene, Skeleton* skele
         assignLocalBindTransforms(scene->mRootNode, skeleton);
     }
 
-    return {vertices, indices};
+    auto newMesh = mesh::MeshFactory::createMesh({vertices, indices});
+
+    if(!newMesh)
+        ELIX_LOG_ERROR("Failed to create mesh");
+    
+
+    return newMesh;
 }
 
-void processMeshes(const aiNode* const node, const aiScene* const scene, std::vector<elix::Mesh>& meshes, Skeleton* skeleton)
+void processMeshes(const aiNode* const node, const aiScene* const scene, std::vector<std::shared_ptr<mesh::IMesh>>& meshes, Skeleton* skeleton)
 {
     for (unsigned int i = 0; i < node->mNumMeshes; ++i)
     {
@@ -186,7 +195,7 @@ void processMeshes(const aiNode* const node, const aiScene* const scene, std::ve
         processMeshes(node->mChildren[i], scene, meshes, skeleton);
 }
 
-std::unique_ptr<elix::AssetModel> elix::AssetsLoader::loadModel(const std::string &filePath)
+std::unique_ptr<AssetModel> AssetsLoader::loadModel(const std::string &filePath)
 {
     Assimp::Importer importer;
 
@@ -195,33 +204,31 @@ std::unique_ptr<elix::AssetModel> elix::AssetsLoader::loadModel(const std::strin
     if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
         return nullptr;
 
-    std::vector<elix::Mesh> meshes;
+    std::vector<std::shared_ptr<mesh::IMesh>> meshes;
     auto skeleton = std::make_unique<Skeleton>();
 
     const std::string name = std::filesystem::path(filePath).filename().string();
 
+    ELIX_LOG_INFO("Processing meshes");
     processMeshes(scene->mRootNode, scene, meshes, skeleton.get());
+    ELIX_LOG_INFO("Done processing meshes");
 
-    std::unique_ptr<elix::Model> model{nullptr};
+    std::unique_ptr<Model> model{nullptr};
 
     //TODO rename with actual path to the model
     const std::string modelName = std::filesystem::path(filePath).filename().string();
 
     if (skeleton->getBonesCount() <= 0)
-    {
-        model = std::make_unique<elix::Model>(modelName, std::move(meshes));
-    }
+        model = std::make_unique<Model>(modelName, std::move(meshes));
     else
-    {
-        model = std::make_unique<elix::Model>(modelName, std::move(meshes), std::move(skeleton));
-    }
+        model = std::make_unique<Model>(modelName, std::move(meshes), std::move(skeleton));
 
     ELIX_LOG_INFO("Loaded model ", filePath.c_str());
 
-    return std::make_unique<elix::AssetModel>(std::move(model));
+    return std::make_unique<AssetModel>(std::move(model));
 }
 
-std::unique_ptr<elix::AssetMaterial> elix::AssetsLoader::loadMaterial(const std::string &filePath, elix::AssetsCache* cache)
+std::unique_ptr<AssetMaterial> AssetsLoader::loadMaterial(const std::string &filePath, AssetsCache* cache)
 {
     std::ifstream file(filePath);
     nlohmann::json json;
@@ -252,18 +259,18 @@ std::unique_ptr<elix::AssetMaterial> elix::AssetsLoader::loadMaterial(const std:
             if (!value.is_string() || value.get<std::string>().empty())
                 continue;
 
-            if (const auto textureType = utilities::fromStringToTextureType(key); textureType != elix::Texture::TextureType::Undefined)
-                if (auto asset = cache->getAsset<elix::AssetTexture>(value.get<std::string>()))
+            if (const auto textureType = utilities::fromStringToTextureType(key); textureType != texture::TextureType::Undefined)
+                if (auto asset = cache->getAsset<AssetTexture>(value.get<std::string>()))
                     material->addTexture(textureType, asset->getTexture());
         }
 
 
     ELIX_LOG_INFO("Loaded material ", filePath.c_str());
 
-    return std::make_unique<elix::AssetMaterial>(std::move(material));
+    return std::make_unique<AssetMaterial>(std::move(material));
 }
 
-std::unique_ptr<elix::AssetAnimation> elix::AssetsLoader::loadAnimation(const std::string &filePath)
+std::unique_ptr<AssetAnimation> AssetsLoader::loadAnimation(const std::string &filePath)
 {
     Assimp::Importer importer;
 
@@ -277,21 +284,21 @@ std::unique_ptr<elix::AssetAnimation> elix::AssetsLoader::loadAnimation(const st
 
      aiAnimation* anim = scene->mAnimations[0];
 
-     auto animation = std::make_unique<common::Animation>();
+     auto animation = std::make_unique<animation::Animation>();
 
      animation->name = anim->mName.C_Str();
      animation->duration = anim->mDuration;
      animation->ticksPerSecond = anim->mTicksPerSecond;
-     std::vector<common::AnimationTrack> boneAnimations;
+     std::vector<animation::AnimationTrack> boneAnimations;
 
      for(unsigned int animChannelIndex = 0; animChannelIndex < anim->mNumChannels; ++animChannelIndex)
      {
          aiNodeAnim* channel = anim->mChannels[animChannelIndex];
-         common::AnimationTrack boneAnimation;
+         animation::AnimationTrack boneAnimation;
 
          boneAnimation.objectName = channel->mNodeName.C_Str();
 
-         std::map<float, common::SQT> tempKeyFrames;
+         std::map<float, animation::SQT> tempKeyFrames;
 
          for (unsigned int j = 0; j < channel->mNumPositionKeys; j++)
          {
@@ -333,5 +340,8 @@ std::unique_ptr<elix::AssetAnimation> elix::AssetsLoader::loadAnimation(const st
 
     ELIX_LOG_INFO("Loaded animation ", filePath.c_str());
 
-    return std::make_unique<elix::AssetAnimation>(std::move(animation));
+    return std::make_unique<AssetAnimation>(std::move(animation));
 }
+
+
+ELIX_NAMESPACE_END

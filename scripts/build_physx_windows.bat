@@ -16,31 +16,22 @@ git clone https://github.com/NVIDIA-Omniverse/PhysX.git
 
 cd PhysX\physx
 
-set "PRESET_FILE=%PHYSX_ROOT%\PhysX\physx\buildtools\presets\public\vc17win64.xml"
-
-set "PRESET_FILE=%PHYSX_ROOT%\PhysX\physx\buildtools\presets\public\vc17win64.xml"
+set "PRESET_FILE=%PHYSX_TMP%\PhysX\physx\buildtools\presets\public\vc17win64.xml"
 
 if exist "%PRESET_FILE%" (
     echo [VelixFlow] Patching PhysX preset to disable GPU projects...
-
-    rem Escape " inside strings with ` (backtick) for PowerShell
     
-    powershell -Command ^
-    "(Get-Content PhysX\physx\buildtools\presets\public\vc17win64.xml) -replace '(<CMakeSwitch name=\"PX_GENERATE_GPU_PROJECTS\" value=\")[Tt]rue(\"/>)', '${1}False${2}' |" ^
-    "Set-Content -Path PhysX\physx\buildtools\presets\public\vc17win64.xml"
-
-    powershell -Command ^
-    "(Get-Content PhysX\physx\buildtools\presets\public\vc17win64.xml) -replace '(<CMakeSwitch name=\"PX_GENERATE_GPU_PROJECTS_ONLY\" value=\")[Tt]rue(\"/>)', '${1}False${2}' |" ^
-    "Set-Content -Path PhysX\physx\buildtools\presets\public\vc17win64.xml"
-
+    powershell -Command "(Get-Content '%PRESET_FILE%') -replace '<CMakeSwitch name=\""PX_GENERATE_GPU_PROJECTS\"" value=\""True\""/>', '<CMakeSwitch name=\""PX_GENERATE_GPU_PROJECTS\"" value=\""False\""/>' | Set-Content -Path '%PRESET_FILE%'"
+    
+    powershell -Command "(Get-Content '%PRESET_FILE%') -replace '<CMakeSwitch name=\""PX_GENERATE_GPU_PROJECTS_ONLY\"" value=\""True\""/>', '<CMakeSwitch name=\""PX_GENERATE_GPU_PROJECTS_ONLY\"" value=\""False\""/>' | Set-Content -Path '%PRESET_FILE%'"
+    
     echo [VelixFlow] PhysX preset patched.
-)
-else (
+) else (
     echo [VelixFlow] Warning: PhysX preset file not found: %PRESET_FILE%
 )
 
 echo [VelixFlow] Generating Visual Studio project files...
-generate_projects.bat vc17win64
+call generate_projects.bat vc17win64
 
 echo [VelixFlow] Building PhysX in %PHYSX_BUILD_TYPE% mode...
 msbuild compiler\vc17win64\PhysX.sln /p:Configuration=%PHYSX_BUILD_TYPE% /p:Platform=x64 /m

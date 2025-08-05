@@ -1,27 +1,34 @@
-#include "Scene.hpp"
+#include "VelixFlow/Scene.hpp"
 #include <fstream>
 #include <json/json.hpp>
-#include "AnimatorComponent.hpp"
-#include "Light.hpp"
-#include "LightComponent.hpp"
-#include "Logger.hpp"
-#include "MeshComponent.hpp"
-#include "RigidbodyComponent.hpp"
-#include "ScriptComponent.hpp"
-#include "ScriptSystem.hpp"
+#include "VelixFlow/Components/AnimatorComponent.hpp"
+#include "VelixFlow/Light.hpp"
+#include "VelixFlow/Components/LightComponent.hpp"
+#include "VelixFlow/Logger.hpp"
+#include "VelixFlow/Components/MeshComponent.hpp"
+#include "VelixFlow/Components/RigidbodyComponent.hpp"
+#include "VelixFlow/Components/ScriptComponent.hpp"
+#include "VelixFlow/Scripting/ScriptSystem.hpp"
+// #include "VelixFlow/RenderAPI/OpenGL/GLTexture.hpp"
+#include "VelixFlow/Components/TransformComponent.hpp"
+
+ELIX_NAMESPACE_BEGIN
 
 void Scene::update(float deltaTime)
 {
     for (const auto& object : m_objects)
         object->update(deltaTime);
+
+    for(const auto& uiElement : m_uiElements)
+        uiElement->update(deltaTime);
 }
 
-void Scene::addUIElement(const std::shared_ptr<elix::ui::UIElement>& uiElement)
+void Scene::addUIElement(const std::shared_ptr<ui::UIElement>& uiElement)
 {
     m_uiElements.push_back(uiElement);
 }
 
-const std::vector<std::shared_ptr<elix::ui::UIElement>> Scene::getUIElements() const
+const std::vector<std::shared_ptr<ui::UIElement>> Scene::getUIElements() const
 {
     return m_uiElements;
 }
@@ -37,24 +44,19 @@ void Scene::addLight(const std::shared_ptr<lighting::Light>& light)
     m_lights.push_back(light);
 }
 
-void Scene::setSkybox(const std::shared_ptr<elix::Skybox> &skybox)
-{
-    m_skybox = skybox;
-}
+// void Scene::setSkybox(const std::shared_ptr<Skybox> &skybox)
+// {
+//     m_skybox = skybox;
+// }
 
-std::shared_ptr<elix::Skybox> Scene::getSkybox() const
-{
-    return m_skybox;
-}
+// std::shared_ptr<Skybox> Scene::getSkybox() const
+// {
+//     return m_skybox;
+// }
 
 void Scene::addGameObject(const std::shared_ptr<GameObject>& gameObject)
 {
     m_objects.push_back(gameObject);
-}
-
-void Scene::addDrawable(const std::shared_ptr<Drawable> &drawable)
-{
-    m_drawables.push_back(drawable);
 }
 
 void Scene::setGameObjects(const std::vector<std::shared_ptr<GameObject>> &gameObjects)
@@ -86,10 +88,6 @@ const std::vector<std::shared_ptr<GameObject>>& Scene::getGameObjects()
     return m_objects;
 }
 
-const std::vector<std::shared_ptr<Drawable>>& Scene::getDrawables()
-{
-    return m_drawables;
-}
 
 void Scene::saveSceneToFile(const std::string &filePath)
 {
@@ -97,8 +95,8 @@ void Scene::saveSceneToFile(const std::string &filePath)
 
     json["name"] = std::filesystem::path(filePath).filename().string();
 
-    if (getSkybox())
-        json["skybox"] = getSkybox()->getAssetPath();
+    // if (getSkybox())
+    //     json["skybox"] = getSkybox()->getAssetPath();
 
     const auto& objects = getGameObjects();
 
@@ -110,13 +108,18 @@ void Scene::saveSceneToFile(const std::string &filePath)
         nlohmann::json objectJson;
 
         objectJson["name"] = object->getName();
-        objectJson["position"] = {object->getPosition().x, object->getPosition().y, object->getPosition().z};
-        objectJson["scale"] = {object->getScale().x, object->getScale().y, object->getScale().z};
-        objectJson["rotation"] = {object->getRotation().x, object->getRotation().y, object->getRotation().z};
 
-        if (object->hasComponent<MeshComponent>())
+        if(const auto& transformation = object->getComponent<components::TransformComponent>())
         {
-            if (auto model = object->getComponent<MeshComponent>()->getModel())
+            objectJson["position"] = {transformation->getPosition().x, transformation->getPosition().y, transformation->getPosition().z};
+            objectJson["scale"] = {transformation->getScale().x, transformation->getScale().y, transformation->getScale().z};
+            objectJson["rotation"] = {transformation->getRotation().x, transformation->getRotation().y, transformation->getRotation().z};
+        }
+
+
+        if (object->hasComponent<components::MeshComponent>())
+        {
+            if (auto model = object->getComponent<components::MeshComponent>()->getModel())
             {
                 objectJson["model"] = model->getName();
 
@@ -124,11 +127,9 @@ void Scene::saveSceneToFile(const std::string &filePath)
 
                 for (int index = 0; index < model->getNumMeshes(); index++)
                 {
-                    auto mesh = model->getMesh(index);
-
                     Material* material;
 
-                    if(auto mat = object->getComponent<MeshComponent>()->getMaterialOverride(index))
+                    if(auto mat = object->getComponent<components::MeshComponent>()->getMaterialOverride(index))
                         material = mat;
 
                     if (material)
@@ -139,11 +140,11 @@ void Scene::saveSceneToFile(const std::string &filePath)
             }
         }
 
-        if (object->hasComponent<LightComponent>())
+        if (object->hasComponent<components::LightComponent>())
         {
             nlohmann::json lightJson;
 
-            auto light = object->getComponent<LightComponent>()->getLight();
+            auto light = object->getComponent<components::LightComponent>()->getLight();
 
             lightJson["type"] = "LightComponent";
             lightJson["lightType"] = static_cast<int>(light->type);
@@ -155,7 +156,7 @@ void Scene::saveSceneToFile(const std::string &filePath)
 
             objectJson["components"].push_back(lightJson);
         }
-        if (object->hasComponent<AnimatorComponent>())
+        if (object->hasComponent<components::AnimatorComponent>())
         {
             nlohmann::json animatorJson;
 
@@ -163,11 +164,11 @@ void Scene::saveSceneToFile(const std::string &filePath)
 
             objectJson["components"].push_back(animatorJson);
         }
-        if (object->hasComponent<ScriptComponent>())
+        if (object->hasComponent<components::ScriptComponent>())
         {
             nlohmann::json scriptArray = nlohmann::json::array();
 
-            for (const auto& [name, _] : object->getComponent<ScriptComponent>()->getScripts()) {
+            for (const auto& [name, _] : object->getComponent<components::ScriptComponent>()->getScripts()) {
                 scriptArray.push_back(name);
             }
 
@@ -181,6 +182,34 @@ void Scene::saveSceneToFile(const std::string &filePath)
         json["game_objects"].push_back(objectJson);
     }
 
+    auto uiElements = getUIElements();
+
+    for(const auto& uiElement : uiElements)
+    {
+        nlohmann::json uiObjectJson;
+
+        uiObjectJson["name"] = uiElement->getName();
+
+        uiObjectJson["position"] = {uiElement->getPosition().x, uiElement->getPosition().y};
+        uiObjectJson["size"] = {uiElement->getSize().x, uiElement->getSize().y};
+        uiObjectJson["color"] = {uiElement->getColor().x, uiElement->getColor().y, uiElement->getColor().z, uiElement->getColor().w};
+        uiObjectJson["is_visible"] = uiElement->isVisible();
+        uiObjectJson["alpha"] = uiElement->getAlpha();
+
+        if(auto texture = uiElement->getTexture())
+        {
+            // auto glTexture = dynamic_cast<texture::GLTexture*>(texture);
+
+            // if(glTexture)
+            //     uiObjectJson["texture"] = glTexture->getName();
+            // else
+            //     ELIX_LOG_ERROR("No GL texture");
+
+        }
+
+        json["ui_elements"].push_back(uiObjectJson);
+    }
+
     std::ofstream file(filePath);
 
     if (file.is_open())
@@ -189,10 +218,10 @@ void Scene::saveSceneToFile(const std::string &filePath)
         file.close();
     }
     else
-        ELIX_LOG_ERROR("Scene::saveObjectsIntoFile(): Could not open file to save game objects: %s", filePath);
+        ELIX_LOG_ERROR("Scene::saveObjectsIntoFile(): Could not open file to save game objects: ", filePath);
 }
 
-void Scene::loadSceneFromFile(const std::string &filePath, elix::AssetsCache& cache)
+void Scene::loadSceneFromFile(const std::string &filePath, AssetsCache& cache)
 {
     std::ifstream file(filePath);
 
@@ -214,147 +243,209 @@ void Scene::loadSceneFromFile(const std::string &filePath, elix::AssetsCache& ca
         return;
     }
 
-    if (json.contains("skybox"))
+    // if (json.contains("skybox"))
+    // {
+    //     auto skybox = std::make_shared<Skybox>();
+
+    //     skybox->loadFromHDR(json["skybox"]);
+
+    //     setSkybox(skybox);
+    // }
+
+    if (json.contains("game_objects"))
     {
-        auto skybox = std::make_shared<elix::Skybox>();
 
-        skybox->init({});
-
-        skybox->loadFromHDR(json["skybox"]);
-
-        setSkybox(skybox);
-    }
-
-    if (!json.contains("game_objects"))
-        return;
-
-    std::vector<std::shared_ptr<GameObject>> objects;
-
-    for (const auto& objectJson : json["game_objects"])
-    {
-        const std::string& name = objectJson.value("name", "undefined");
-
-        auto gameObject = std::make_shared<GameObject>(name);
-
-        if (objectJson.contains("model"))
+        for (const auto& objectJson : json["game_objects"])
         {
-            const std::string modelName = objectJson["model"];
+            const std::string& name = objectJson.value("name", "undefined");
 
-            if (auto modelAsset = cache.getAsset<elix::AssetModel>(modelName))
+            auto gameObject = std::make_shared<GameObject>(name);
+
+            if (objectJson.contains("model"))
             {
-                auto model = modelAsset->getModel();
+                const std::string modelName = objectJson["model"];
 
-                gameObject->addComponent<MeshComponent>(model);
-
-                if (objectJson.contains("materials"))
+                if (auto modelAsset = cache.getAsset<AssetModel>(modelName))
                 {
-                    const auto& materials = objectJson["materials"];
+                    auto model = modelAsset->getModel();
 
-                    for (int i = 0; i < model->getNumMeshes(); ++i)
+                    gameObject->addComponent<components::MeshComponent>(model);
+
+                    if (objectJson.contains("materials"))
                     {
-                        const std::string indexStr = std::to_string(i);
+                        const auto& materials = objectJson["materials"];
 
-                        if (!materials.contains(indexStr))
-                            continue;
-
-                        const std::string materialName = materials.value(indexStr, "");
-
-                        if (materialName.empty())
+                        for (int i = 0; i < model->getNumMeshes(); ++i)
                         {
-                            ELIX_LOG_WARN("Could not find material in json with given %s", indexStr.c_str());
-                            continue;
-                        }
+                            const std::string indexStr = std::to_string(i);
 
-                        if (auto material = cache.getAsset<elix::AssetMaterial>(materialName))
-                        {
-                            if(auto component = gameObject->getComponent<MeshComponent>())
-                                component->setMaterialOverride(i, material->getMaterial());
+                            if (!materials.contains(indexStr))
+                                continue;
+
+                            const std::string materialName = materials.value(indexStr, "");
+
+                            if (materialName.empty())
+                            {
+                                ELIX_LOG_WARN("Could not find material in json with given %s", indexStr.c_str());
+                                continue;
+                            }
+
+                            if (auto material = cache.getAsset<AssetMaterial>(materialName))
+                            {
+                                if(auto component = gameObject->getComponent<components::MeshComponent>())
+                                    component->setMaterialOverride(i, material->getMaterial());
+                            }
+                            else
+                                ELIX_LOG_WARN("Could not find material %s", materialName.c_str());
                         }
-                        else
-                            ELIX_LOG_WARN("Could not find material %s", materialName.c_str());
                     }
                 }
+                else
+                    ELIX_LOG_ERROR("Could not attach mesh component because missing the model %s", modelName.c_str());
             }
             else
-                ELIX_LOG_ERROR("Could not attach mesh component because missing the model %s", modelName.c_str());
-        }
-        else
-            ELIX_LOG_WARN("Could not find model in .json. Is this okay?....");
+                ELIX_LOG_WARN("Could not find model in .json. Is this okay?....");
 
-        if (objectJson.contains("position"))
-        {
-            const auto& pos = objectJson["position"];
-            gameObject->setPosition({ pos[0], pos[1], pos[2] });
-        }
+            auto* transformation = gameObject->addComponent<components::TransformComponent>();
 
-        if (objectJson.contains("scale"))
-        {
-            const auto& scale = objectJson["scale"];
-            gameObject->setScale({ scale[0], scale[1], scale[2] });
-        }
-
-        if (objectJson.contains("rotation"))
-        {
-            const auto& rot = objectJson["rotation"];
-            gameObject->setRotation({ rot[0], rot[1], rot[2] });
-        }
-
-        gameObject->addComponent<RigidbodyComponent>(gameObject);
-
-        // if (isSkinned)
-            // physics::PhysicsController::instance().resizeCollider({1.0f, 2.0f, 1.0f}, gameObject);
-
-        if (objectJson.contains("components"))
-        {
-            for (const auto& componentJson : objectJson["components"])
+            if (objectJson.contains("position"))
             {
-                if (!componentJson.contains("type"))
-                    continue;
+                const auto& pos = objectJson["position"];
+                transformation->setPosition({ pos[0], pos[1], pos[2] });
+            }
 
-                //TODO make it more safe, Cause it sucks...
-                if (componentJson["type"] == "LightComponent")
-                {
-                    auto light = std::make_shared<lighting::Light>();
-                    light->type = static_cast<lighting::LightType>(componentJson["lightType"]);
-                    const auto& direction = componentJson["direction"];
-                    light->direction = glm::vec3(direction[0], direction[1], direction[2]);
-                    const auto& position = componentJson["position"];
-                    light->position = glm::vec3(position[0], position[1], position[2]);
-                    const auto& color = componentJson["color"];
-                    light->color = glm::vec3(color[0], color[1], color[2]);
-                    light->strength = componentJson["strength"];
-                    light->radius = componentJson["radius"];
-                    gameObject->addComponent<LightComponent>(light);
-                    addLight(light);
-                }
-                else if (componentJson["type"] == "AnimatorComponent")
-                {
-                    gameObject->addComponent<AnimatorComponent>();
-                }
-                else if (componentJson["type"] == "ScriptsComponent")
-                {
-                    auto* scriptComponent = gameObject->addComponent<ScriptComponent>();
+            if (objectJson.contains("scale"))
+            {
+                const auto& scale = objectJson["scale"];
+                transformation->setScale({ scale[0], scale[1], scale[2] });
+            }
 
-                    if (componentJson.contains("scripts"))
+            if (objectJson.contains("rotation"))
+            {
+                const auto& rot = objectJson["rotation"];
+                transformation->setRotation({ rot[0], rot[1], rot[2] });
+            }
+
+            gameObject->addComponent<components::RigidbodyComponent>(gameObject);
+
+            // if (isSkinned)
+                // physics::PhysicsController::instance().resizeCollider({1.0f, 2.0f, 1.0f}, gameObject);
+
+            if (objectJson.contains("components"))
+            {
+                for (const auto& componentJson : objectJson["components"])
+                {
+                    if (!componentJson.contains("type"))
+                        continue;
+
+                    //TODO make it more safe, Cause it sucks...
+                    if (componentJson["type"] == "LightComponent")
                     {
-                        for (auto& scriptEntry : componentJson["scripts"])
-                        {
-                            auto script = elix::ScriptSystem::createScript(scriptEntry.get<std::string>());
+                        auto light = std::make_shared<lighting::Light>();
+                        light->type = static_cast<lighting::LightType>(componentJson["lightType"]);
+                        const auto& direction = componentJson["direction"];
+                        light->direction = glm::vec3(direction[0], direction[1], direction[2]);
+                        const auto& position = componentJson["position"];
+                        light->position = glm::vec3(position[0], position[1], position[2]);
+                        const auto& color = componentJson["color"];
+                        light->color = glm::vec3(color[0], color[1], color[2]);
+                        light->strength = componentJson["strength"];
+                        light->radius = componentJson["radius"];
+                        gameObject->addComponent<components::LightComponent>(light);
+                        addLight(light);
+                    }
+                    else if (componentJson["type"] == "AnimatorComponent")
+                    {
+                        gameObject->addComponent<components::AnimatorComponent>();
+                    }
+                    else if (componentJson["type"] == "ScriptsComponent")
+                    {
+                        auto* scriptComponent = gameObject->addComponent<components::ScriptComponent>();
 
-                            if(!script)
-                                ELIX_LOG_ERROR("Could not create script ", scriptEntry.get<std::string>());
-                            else
-                                scriptComponent->addScript(script);
+                        if (componentJson.contains("scripts"))
+                        {
+                            for (auto& scriptEntry : componentJson["scripts"])
+                            {
+                                auto script = scripting::ScriptSystem::createScript(scriptEntry.get<std::string>());
+
+                                if(!script)
+                                    ELIX_LOG_ERROR("Could not create script ", scriptEntry.get<std::string>());
+                                else
+                                    scriptComponent->addScript(script);
+                            }
                         }
                     }
                 }
             }
+                addGameObject(gameObject);
+        }
+    }
+
+
+
+    if (json.contains("ui_elements"))
+    {
+        std::vector<std::shared_ptr<ui::UIElement>> uiElements;
+
+        for(const auto& uiElementJson : json["ui_elements"])
+        {
+            auto uiElement = std::make_shared<ui::UIElement>();
+
+            uiElement->setName(uiElementJson.value("name", "undefined"));
+
+
+            if (uiElementJson.contains("position"))
+            {
+                const auto& pos = uiElementJson["position"];
+                uiElement->setPosition({ pos[0], pos[1]});
+            }
+
+            if(uiElementJson.contains("size"))
+            {
+                const auto& size = uiElementJson["size"];
+                uiElement->setSize({size[0], size[1]});
+            }
+
+            if(uiElementJson.contains("color"))
+            {
+                const auto& color = uiElementJson["color"];
+                uiElement->setColor({color[0], color[1], color[2], color[3]});
+            }
+
+            if(uiElementJson.contains("is_visible"))
+            {
+                const bool& isVisible = uiElementJson["is_visible"];
+                uiElement->setVisible(isVisible);
+            }
+
+            if(uiElementJson.contains("alpha"))
+            {
+                const float& alpha = uiElementJson["alpha"];
+                uiElement->setAlpha(alpha);
+            }
+
+            if(uiElementJson.contains("texture"))
+            {
+                const std::string& textureName = uiElementJson["texture"];
+                auto assetTexture = cache.getAsset<AssetTexture>(textureName);
+
+                if(assetTexture)
+                    uiElement->setTexture(assetTexture->getTexture());
+                else
+                    ELIX_LOG_WARN("Could not find ", textureName, " texture");
+            }
+
+            //TODO maybe use std::move
+            uiElements.push_back(uiElement);
+            addUIElement(uiElement);
         }
 
-        objects.push_back(gameObject);
     }
+
 
     file.close();
 
-    setGameObjects(objects);
 }
+
+
+ELIX_NAMESPACE_END

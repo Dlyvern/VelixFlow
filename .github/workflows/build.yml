@@ -16,7 +16,7 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt update
-          sudo apt install -y cmake build-essential libgl1-mesa-dev ninja-build
+          sudo apt install -y cmake build-essential libgl1-mesa-dev ninja-build libvulkan-dev vulkan-tools
 
       - name: Restore FetchContent Cache
         uses: actions/cache@v4
@@ -31,7 +31,7 @@ jobs:
 
       - name: Configure and Build
         run: |
-          cmake -S . -B build -G Ninja -DPHYSX_BUILD_TYPE=checked
+          cmake -S . -B build -G Ninja -DPHYSX_BUILD_TYPE=checked -DVELIX_USE_VULKAN=ON -DVELIX_USE_OPENGL=ON
           cmake --build build --config Debug
 
       - name: Install to Staging Dir
@@ -70,9 +70,16 @@ jobs:
             Remove-Item -Recurse -Force build
           }
 
+      - name: Install Vulkan SDK
+        shell: powershell
+        run: |
+          choco install vulkan-sdk --version=1.3.275.0 -y
+          Import-Module "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
+          refreshenv
+
       - name: Configure and Build
         run: |
-          cmake -S . -B build -G Ninja -DPHYSX_BUILD_TYPE=checked
+          cmake -S . -B build -G Ninja -DPHYSX_BUILD_TYPE=checked -DVELIX_USE_VULKAN=ON -DVELIX_USE_OPENGL=ON
           cmake --build build --config Debug
 
       - name: Install to Staging Dir
@@ -109,7 +116,7 @@ jobs:
 
       - name: Configure and Build
         run: |
-          cmake -S . -B build -G Ninja -DVELIX_USE_PHYSX=OFF -DPHYSX_BUILD_TYPE=checked
+          cmake -S . -B build -G Ninja -DVELIX_USE_PHYSX=OFF -DPHYSX_BUILD_TYPE=checked -DVELIX_USE_VULKAN=OFF -DVELIX_USE_OPENGL=ON
           cmake --build build --config Debug
 
       - name: Install to Staging Dir

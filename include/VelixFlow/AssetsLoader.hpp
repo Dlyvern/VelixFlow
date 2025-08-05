@@ -4,30 +4,30 @@
 #include <memory>
 #include "Assets.hpp"
 #include "AssetsCache.hpp"
+#include "VelixFlow/DefaultMacros.hpp"
 
-namespace elix
+ELIX_NAMESPACE_BEGIN
+
+class AssetsLoader
 {
-    class AssetsLoader
+public:
+    template<typename T>
+    static std::unique_ptr<T> loadAsset(const std::string& filePath)
     {
-    public:
-        template<typename T>
-        static std::unique_ptr<T> loadAsset(const std::string& filePath)
-        {
-            return loadAnimation(filePath);
-        }
+        return loadAnimation(filePath);
+    }
 
-        static std::unique_ptr<elix::Asset> loadAsset(const std::string& filePath, elix::AssetsCache* cache = nullptr);
+    static std::unique_ptr<elix::Asset> loadAsset(const std::string& filePath, elix::AssetsCache* cache = nullptr);
 
-    private:
-        static std::unique_ptr<AssetTexture> loadTexture(const std::string& filePath);
-        static std::unique_ptr<AssetModel> loadModel(const std::string& filePath);
-        static std::unique_ptr<AssetMaterial> loadMaterial(const std::string& filePath, elix::AssetsCache* cache);
-        static std::unique_ptr<AssetAnimation> loadAnimation(const std::string& filePath);
+private:
+    static std::unique_ptr<AssetTexture> loadTexture(const std::string& filePath);
+    static std::unique_ptr<AssetModel> loadModel(const std::string& filePath);
+    static std::unique_ptr<AssetMaterial> loadMaterial(const std::string& filePath, elix::AssetsCache* cache);
+    static std::unique_ptr<AssetAnimation> loadAnimation(const std::string& filePath);
 
-    };
+};
 
-} //namespace elix
-
+ELIX_NAMESPACE_END
 
 
 // void AssetsManager::saveAnimationToJson(const common::Animation& animation, const std::string& path)

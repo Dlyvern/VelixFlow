@@ -1,37 +1,39 @@
 #ifndef MODEL_HPP
 #define MODEL_HPP
 
+#include "VelixFlow/DefaultMacros.hpp"
+#include "VelixFlow/Skeleton.hpp"
+#include "VelixFlow/Animation.hpp"
 
-#include "Skeleton.hpp"
-#include "Mesh.hpp"
+#include "VelixFlow/RenderAPI/Interface/IMesh.hpp"
+
 #include <memory>
 
-namespace elix
+ELIX_NAMESPACE_BEGIN
+
+class Model
 {
-    class Model
-    {
-    public:
-        Model(const std::string& name, const std::vector<elix::Mesh>& meshes, std::unique_ptr<Skeleton> skeleton = nullptr);
+public:
+    Model(const std::string& name, const std::vector<std::shared_ptr<mesh::IMesh>>& meshes, std::unique_ptr<Skeleton> skeleton = nullptr);
 
-        void draw() const;
+    void addAnimation(animation::Animation* animation);
 
-        void addAnimation(common::Animation* animation);
+    [[nodiscard]] animation::Animation* getAnimation(int index) const;
+    [[nodiscard]] animation::Animation* getAnimation(const std::string& name) const;
+    [[nodiscard]] const std::vector<animation::Animation*>& getAnimations() const;
+    [[nodiscard]] Skeleton* getSkeleton() const;
+    [[nodiscard]] std::string getName() const;
+    [[nodiscard]] size_t getNumMeshes() const;
+    [[nodiscard]] std::shared_ptr<mesh::IMesh> getMesh(int meshIndex);
+    [[nodiscard]] const std::vector<std::shared_ptr<mesh::IMesh>>& getMeshes() const;
+    [[nodiscard]] bool hasSkeleton() const;
+private:
+    std::string m_name;
+    std::vector<std::shared_ptr<mesh::IMesh>> m_meshes;
+    std::unique_ptr<Skeleton> m_skeleton{nullptr};
+    std::vector<animation::Animation*> m_animations;
+};
 
-        [[nodiscard]] common::Animation* getAnimation(int index) const;
-        [[nodiscard]] common::Animation* getAnimation(const std::string& name) const;
-        [[nodiscard]] const std::vector<common::Animation*>& getAnimations() const;
-        [[nodiscard]] Skeleton* getSkeleton() const;
-        [[nodiscard]] std::string getName() const;
-        [[nodiscard]] size_t getNumMeshes() const;
-        [[nodiscard]] elix::Mesh* getMesh(int meshIndex);
-        [[nodiscard]] const std::vector<elix::Mesh>& getMeshes() const;
-        [[nodiscard]] bool hasSkeleton() const;
-    private:
-        std::string m_name;
-        std::vector<elix::Mesh> m_meshes;
-        std::unique_ptr<Skeleton> m_skeleton{nullptr};
-        std::vector<common::Animation*> m_animations;
-    };
-} //namespace elix
+ELIX_NAMESPACE_END
 
 #endif //MODEL_HPP

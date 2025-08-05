@@ -1,10 +1,10 @@
-#include "ParticleEmitter.hpp"
-#include <glad/glad.h>
+#include "VelixFlow/ParticleEmitter.hpp"
+// #include <glad/glad.h>
 
-static GLuint particleVAO = 0;
-static GLuint quadVBO = 0;
-static GLuint instanceVBO = 0;
-static bool buffersInitialized = false;
+// static GLuint particleVAO = 0;
+// static GLuint quadVBO = 0;
+// static GLuint instanceVBO = 0;
+// static bool buffersInitialized = false;
 
 
 struct ParticleInstanceData {
@@ -14,40 +14,40 @@ struct ParticleInstanceData {
 
 static void initRenderBuffers() 
 {
-    float quadVertices[] = {
-        -0.5f, -0.5f,
-         0.5f, -0.5f,
-        -0.5f,  0.5f,
-         0.5f,  0.5f
-    };
+    // float quadVertices[] = {
+    //     -0.5f, -0.5f,
+    //      0.5f, -0.5f,
+    //     -0.5f,  0.5f,
+    //      0.5f,  0.5f
+    // };
 
-    glGenVertexArrays(1, &particleVAO);
-    glBindVertexArray(particleVAO);
+    // glGenVertexArrays(1, &particleVAO);
+    // glBindVertexArray(particleVAO);
 
-    glGenBuffers(1, &quadVBO);
-    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+    // glGenBuffers(1, &quadVBO);
+    // glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+    // glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
 
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+    // glEnableVertexAttribArray(0);
+    // glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
 
-    glGenBuffers(1, &instanceVBO);
-    glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * 10000, nullptr, GL_DYNAMIC_DRAW); // 10k max
+    // glGenBuffers(1, &instanceVBO);
+    // glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+    // glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * 10000, nullptr, GL_DYNAMIC_DRAW); // 10k max
 
-    glGenBuffers(1, &instanceVBO);
-    glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(ParticleInstanceData) * 10000, nullptr, GL_DYNAMIC_DRAW);
+    // glGenBuffers(1, &instanceVBO);
+    // glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+    // glBufferData(GL_ARRAY_BUFFER, sizeof(ParticleInstanceData) * 10000, nullptr, GL_DYNAMIC_DRAW);
 
-    // Instance attribute: position (layout = 1)
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(ParticleInstanceData), (void*)0);
-    glVertexAttribDivisor(1, 1);
+    // // Instance attribute: position (layout = 1)
+    // glEnableVertexAttribArray(1);
+    // glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(ParticleInstanceData), (void*)0);
+    // glVertexAttribDivisor(1, 1);
 
-    // Instance attribute: velocity (layout = 2)
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(ParticleInstanceData), (void*)(sizeof(glm::vec3)));
-    glVertexAttribDivisor(2, 1);
+    // // Instance attribute: velocity (layout = 2)
+    // glEnableVertexAttribArray(2);
+    // glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(ParticleInstanceData), (void*)(sizeof(glm::vec3)));
+    // glVertexAttribDivisor(2, 1);
 }
 
 void elix::ParticleEmitter::addModule(std::shared_ptr<elix::ParticleModule> particleModule)
@@ -57,21 +57,21 @@ void elix::ParticleEmitter::addModule(std::shared_ptr<elix::ParticleModule> part
 
 void elix::ParticleEmitter::render()
 {
-    if (!buffersInitialized)
-    {
-        initRenderBuffers();
-        buffersInitialized = true;
-    }
+    // if (!buffersInitialized)
+    // {
+    //     initRenderBuffers();
+    //     buffersInitialized = true;
+    // }
     
-    std::vector<ParticleInstanceData> instanceData;
-    for (const auto& p : m_particles)
-        instanceData.push_back({ p.position, p.velocity });
+    // std::vector<ParticleInstanceData> instanceData;
+    // for (const auto& p : m_particles)
+    //     instanceData.push_back({ p.position, p.velocity });
 
-    glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, instanceData.size() * sizeof(ParticleInstanceData), instanceData.data());
+    // glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+    // glBufferSubData(GL_ARRAY_BUFFER, 0, instanceData.size() * sizeof(ParticleInstanceData), instanceData.data());
 
-    glBindVertexArray(particleVAO);
-    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, static_cast<GLsizei>(instanceData.size()));
+    // glBindVertexArray(particleVAO);
+    // glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, static_cast<GLsizei>(instanceData.size()));
 }
 
 void elix::ParticleEmitter::update(float deltaTime)
