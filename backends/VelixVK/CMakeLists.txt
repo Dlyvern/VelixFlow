@@ -4,9 +4,6 @@ project(VelixVK)
 set(INCLUDE_DIR include)
 set(SRC_DIR src)
 
-set(GLFW_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/glfw/include)
-set(GLFW_LIB_DIR ${CMAKE_SOURCE_DIR}/external/glfw/lib)
-
 set(VOLK_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/external/volk)
 
 file(GLOB_RECURSE PROJECT_HEADERS ${INCLUDE_DIR}/*.h ${INCLUDE_DIR}/*.hpp)
@@ -44,24 +41,18 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 
 if(VELIX_PLATFORM_LINUX)
     target_link_libraries(${PROJECT_NAME} PUBLIC
-        ${GLFW_LIB_DIR}/linux/libglfw3.a
         pthread
         VelixFlow
         ${Vulkan_LIBRARIES}
     )
 elseif(VELIX_PLATFORM_WINDOWS)
     target_link_libraries(${PROJECT_NAME} PUBLIC
-        ${GLFW_LIB_DIR}/windows/glfw3.lib
-        user32
-        gdi32
-        shell32
         ${Vulkan_LIBRARIES}
         VelixFlow
     )
 
 elseif(VELIX_PLATFORM_MACOS)
     target_link_libraries(${PROJECT_NAME} PUBLIC 
-        ${GLFW_LIB_DIR}/linux/libglfw3.a
         ${Vulkan_LIBRARIES}
         VelixFlow
     )

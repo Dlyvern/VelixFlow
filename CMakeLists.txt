@@ -243,13 +243,15 @@ if(VELIX_PLATFORM_WINDOWS)
             Threads::Threads
     )
 elseif(VELIX_PLATFORM_MACOS)
+    find_package(ZLIB REQUIRED)
+
     target_link_libraries(${PROJECT_NAME} PUBLIC
             ${GLFW_ROOT}/lib/linux/libglfw3.a
             ${ASSIMP_ROOT}/lib/linux/libassimp.a
             assimp
             ${FMOD_ROOT}/lib/linux/libfmod.so.14.8
             ${FREETYPE_ROOT}/lib/linux/libfreetype.a
-            ${LIBZ_ROOT}/lib/linux/libz.a
+            ZLIB::ZLIB
             ${COCOA_LIBRARY}
             ${IOKIT_LIBRARY}
             ${COREVIDEO_LIBRARY}

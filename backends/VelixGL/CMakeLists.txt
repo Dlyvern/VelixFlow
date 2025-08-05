@@ -4,9 +4,6 @@ project(VelixGL)
 set(INCLUDE_DIR include)
 set(SRC_DIR src)
 
-set(GLFW_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/external/glfw/include)
-set(GLFW_LIB_DIR ${CMAKE_SOURCE_DIR}/external/glfw/lib)
-
 set(GLAD_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/external/glad)
 
 file(GLOB_RECURSE PROJECT_HEADERS ${INCLUDE_DIR}/*.h ${INCLUDE_DIR}/*.hpp)
@@ -104,20 +101,17 @@ set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_include_directories(${PROJECT_NAME} PUBLIC
     ${INCLUDE_DIR}
     ${CMAKE_SOURCE_DIR}/include
-    ${GLFW_INCLUDE_DIR}
 )
 
 if(VELIX_PLATFORM_LINUX)
     target_link_libraries(${PROJECT_NAME} PUBLIC
         OpenGL::GL
-        ${GLFW_LIB_DIR}/linux/libglfw3.a
         glad
         VelixFlow
     )
 elseif(VELIX_PLATFORM_WINDOWS)
     target_link_libraries(${PROJECT_NAME} PUBLIC
         OpenGL::GL
-        ${GLFW_LIB_DIR}/windows/glfw3.lib
         glad
         VelixFlow
     )
@@ -125,7 +119,6 @@ elseif(VELIX_PLATFORM_WINDOWS)
 elseif(VELIX_PLATFORM_MACOS)
     target_link_libraries(${PROJECT_NAME} PUBLIC 
         ${OPENGL_LIBRARY}
-        ${GLFW_LIB_DIR}/windows/glfw3.lib
         glad
         ${COCOA_LIBRARY}
         ${IOKIT_LIBRARY}
