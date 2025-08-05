@@ -70,12 +70,26 @@ jobs:
             Remove-Item -Recurse -Force build
           }
 
-      - name: Install Vulkan SDK
+      - name: Install Vulkan SDK manually
         shell: powershell
         run: |
-          choco install vulkan-sdk -y
-          Import-Module "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
-          refreshenv
+          $ErrorActionPreference = "Stop"
+          $vulkanVersion = "1.4.321.1"
+          $installerUrl = "https://sdk.lunarg.com/sdk/download/$vulkanVersion/windows/VulkanSDK-$vulkanVersion-Installer.exe"
+          $installerPath = "$env:TEMP\VulkanSDK-Installer.exe"
+          
+          Write-Host "Downloading Vulkan SDK $vulkanVersion from $installerUrl ..."
+          Invoke-WebRequest -Uri $installerUrl -OutFile $installerPath
+
+          Write-Host "Running Vulkan SDK installer silently ..."
+          Start-Process -FilePath $installerPath -ArgumentList "/S" -Wait
+
+          Write-Host "Setting environment variable VULKAN_SDK ..."
+          [System.Environment]::SetEnvironmentVariable("VULKAN_SDK", "C:\VulkanSDK\$vulkanVersion", "Machine")
+
+          $env:PATH = "C:\VulkanSDK\$vulkanVersion\Bin;" + $env:PATH
+
+          Write-Host "VULKAN_SDK is now set to: $env:VULKAN_SDK"
 
       - name: Configure and Build
         run: |
