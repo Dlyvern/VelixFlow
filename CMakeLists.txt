@@ -164,20 +164,6 @@ add_library(${PROJECT_NAME} STATIC ${PROJECT_HEADERS} ${PROJECT_SOURCES})
 add_library(Velix::VelixFlow ALIAS VelixFlow)
 set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-option(VELIX_USE_VULKAN "Use Vulkan rendering backend" ON)
-option(VELIX_USE_OPENGL "Use OpenGL rendering backend" OFF)
-
-if(VELIX_USE_VULKAN)
-    message("Using Vulkan")
-    add_subdirectory(backends/VelixVK)
-elseif(VELIX_USE_OPENGL)
-    message("Using OpenGL")
-    add_subdirectory(backends/VelixGL)
-else()
-    message("No rendering backend selected")
-endif()
-
-
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(${PROJECT_NAME} PRIVATE -Wno-volatile)
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
@@ -271,11 +257,8 @@ elseif(VELIX_PLATFORM_MACOS)
     )
 else()
     target_link_libraries(${PROJECT_NAME} PUBLIC
-            -Wl,--start-group
-            -Wl,--end-group
             ${GLFW_ROOT}/lib/linux/libglfw3.a
             ${FMOD_ROOT}/lib/linux/libfmod.so.14.8
-#            ${ASSIMP_ROOT}/lib/linux/libassimp.a
             assimp
             ${FREETYPE_ROOT}/lib/linux/libfreetype.a
             Threads::Threads
@@ -284,6 +267,21 @@ else()
 endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
+
+
+option(VELIX_USE_VULKAN "Use Vulkan rendering backend" ON)
+option(VELIX_USE_OPENGL "Use OpenGL rendering backend" OFF)
+
+if(VELIX_USE_VULKAN)
+    message("Using Vulkan")
+    add_subdirectory(backends/VelixVK)
+elseif(VELIX_USE_OPENGL)
+    message("Using OpenGL")
+    add_subdirectory(backends/VelixGL)
+else()
+    message("No rendering backend selected")
+endif()
+
         
 install(TARGETS VelixFlow
         EXPORT VelixFlowTargets

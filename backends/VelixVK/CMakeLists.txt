@@ -36,7 +36,6 @@ target_include_directories(${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURR
 
 set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-
 target_include_directories(${PROJECT_NAME} PUBLIC
     ${INCLUDE_DIR}
     ${CMAKE_SOURCE_DIR}/include
@@ -46,13 +45,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 if(VELIX_PLATFORM_LINUX)
     target_link_libraries(${PROJECT_NAME} PUBLIC
         ${GLFW_LIB_DIR}/linux/libglfw3.a
-        dl
         pthread
-        X11
-        Xrandr
-        Xi
-        Xxf86vm
-        Xcursor
         VelixFlow
         ${Vulkan_LIBRARIES}
     )
