@@ -95,15 +95,11 @@ foreach(SHADER_CPP ${EMBEDDED_SHADER_SOURCES})
     file(APPEND ${HEADER_OUTPUT} "extern const char* shader_${VAR_NAME};\n")
 endforeach()
 
-
 add_library(${PROJECT_NAME} SHARED ${PROJECT_HEADERS} ${PROJECT_SOURCES}  ${EMBEDDED_SHADER_SOURCES})
-
         
 target_include_directories(${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}> ${OPENGL_INCLUDE_DIRS})
 
-
 set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
-
 
 target_include_directories(${PROJECT_NAME} PUBLIC
     ${INCLUDE_DIR}
@@ -115,13 +111,6 @@ if(VELIX_PLATFORM_LINUX)
     target_link_libraries(${PROJECT_NAME} PUBLIC
         OpenGL::GL
         ${GLFW_LIB_DIR}/linux/libglfw3.a
-        dl
-        pthread
-        X11
-        Xrandr
-        Xi
-        Xxf86vm
-        Xcursor
         glad
         VelixFlow
     )
@@ -129,9 +118,6 @@ elseif(VELIX_PLATFORM_WINDOWS)
     target_link_libraries(${PROJECT_NAME} PUBLIC
         OpenGL::GL
         ${GLFW_LIB_DIR}/windows/glfw3.lib
-        user32
-        gdi32
-        shell32
         glad
         VelixFlow
     )
@@ -139,8 +125,12 @@ elseif(VELIX_PLATFORM_WINDOWS)
 elseif(VELIX_PLATFORM_MACOS)
     target_link_libraries(${PROJECT_NAME} PUBLIC 
         ${OPENGL_LIBRARY}
-        VelixFlow
+        ${GLFW_LIB_DIR}/windows/glfw3.lib
         glad
+        ${COCOA_LIBRARY}
+        ${IOKIT_LIBRARY}
+        ${COREVIDEO_LIBRARY}
+        VelixFlow
     )
 endif()
 

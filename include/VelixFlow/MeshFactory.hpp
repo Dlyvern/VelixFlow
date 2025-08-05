@@ -17,7 +17,7 @@ namespace mesh
         static std::shared_ptr<IMesh> createMesh(const MeshData& meshData);
         IRenderContext* getRenderContext();
     private:
-        static inline std::unique_ptr<MeshFactory> s_instance;
+        static std::unique_ptr<MeshFactory> s_instance;
         IRenderContext* m_renderContext;
     };
 } //namespace mesh

@@ -18,7 +18,7 @@ namespace texture
         static std::unique_ptr<ITexture> createTexture(const std::string& path);
         IRenderContext* getRenderContext();
     private:
-        static inline std::unique_ptr<TextureFactory> s_instance;
+        static std::unique_ptr<TextureFactory> s_instance;
         IRenderContext* m_renderContext;
     };
 } //namespace texture

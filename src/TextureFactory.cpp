@@ -4,6 +4,8 @@ ELIX_NAMESPACE_BEGIN
 
 namespace texture
 {
+    std::unique_ptr<TextureFactory> TextureFactory::s_instance;
+    
     void TextureFactory::init(IRenderContext* renderContext)
     {
         if(s_instance)

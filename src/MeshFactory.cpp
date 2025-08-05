@@ -4,6 +4,8 @@ ELIX_NAMESPACE_BEGIN
 
 namespace mesh
 {
+    std::unique_ptr<MeshFactory> MeshFactory::s_instance;
+    
     void MeshFactory::init(IRenderContext* renderContext)
     {
         if(s_instance)
