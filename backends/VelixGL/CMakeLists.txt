@@ -138,8 +138,8 @@ elseif(VELIX_PLATFORM_WINDOWS)
 
 elseif(VELIX_PLATFORM_MACOS)
     target_link_libraries(${PROJECT_NAME} PUBLIC 
-            ${OPENGL_LIBRARY}
-
+        ${OPENGL_LIBRARY}
+        VelixFlow
     )
 endif()
 

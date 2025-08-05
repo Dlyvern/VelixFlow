@@ -37,19 +37,6 @@ set(FREETYPE_ROOT ${CMAKE_SOURCE_DIR}/external/freetype)
 set(LIBZ_ROOT ${CMAKE_SOURCE_DIR}/external/libz)
 set(FMOD_ROOT ${CMAKE_SOURCE_DIR}/external/fmod)
 
-option(VELIX_USE_VULKAN "Use Vulkan rendering backend" ON)
-option(VELIX_USE_OPENGL "Use OpenGL rendering backend" OFF)
-
-if(VELIX_USE_VULKAN)
-    message("Using Vulkan")
-    add_subdirectory(backends/VelixVK)
-elseif(VELIX_USE_OPENGL)
-    message("Using OpenGL")
-    add_subdirectory(backends/VelixGL)
-else()
-    message("No rendering backend selected")
-endif()
-
 option(VELIX_USE_PHYSX "Enable NVIDIA PhysX support" ON)
 
 if(VELIX_PLATFORM_MACOS)
@@ -172,11 +159,24 @@ else()
     message(STATUS "VELIX_USE_PHYSX is OFF — skipping PhysX setup.")
 endif()
 
-
 # === Create Static Library ===
 add_library(${PROJECT_NAME} STATIC ${PROJECT_HEADERS} ${PROJECT_SOURCES})
 add_library(Velix::VelixFlow ALIAS VelixFlow)
 set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+option(VELIX_USE_VULKAN "Use Vulkan rendering backend" ON)
+option(VELIX_USE_OPENGL "Use OpenGL rendering backend" OFF)
+
+if(VELIX_USE_VULKAN)
+    message("Using Vulkan")
+    add_subdirectory(backends/VelixVK)
+elseif(VELIX_USE_OPENGL)
+    message("Using OpenGL")
+    add_subdirectory(backends/VelixGL)
+else()
+    message("No rendering backend selected")
+endif()
+
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(${PROJECT_NAME} PRIVATE -Wno-volatile)

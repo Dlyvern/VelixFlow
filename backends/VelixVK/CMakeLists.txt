@@ -70,6 +70,7 @@ elseif(VELIX_PLATFORM_MACOS)
     target_link_libraries(${PROJECT_NAME} PUBLIC 
         ${GLFW_LIB_DIR}/linux/libglfw3.a
         ${Vulkan_LIBRARIES}
+        VelixFlow
     )
 endif()
 
