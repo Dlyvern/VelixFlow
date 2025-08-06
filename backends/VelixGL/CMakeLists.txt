@@ -29,7 +29,6 @@ if(NOT TARGET OpenGL::OpenGL)
 endif()
 
 if(APPLE)
-    add_compile_options(-std=c++23)
     add_definitions(-DGL_SILENCE_DEPRECATION)
 
     find_library(COCOA_LIBRARY Cocoa)

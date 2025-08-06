@@ -16,10 +16,12 @@ endif()
 
 if(MSVC)
     add_compile_options(/Zc:preprocessor)
+    add_definitions(-D_ITERATOR_DEBUG_LEVEL=0)
 endif()
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # === Paths ===
 set(INCLUDE_DIR include/VelixFlow)
@@ -205,11 +207,16 @@ target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
 if(VELIX_USE_PHYSX)
     if(WIN32)
         target_link_libraries(${PROJECT_NAME} PUBLIC
-           ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXExtensions_static_64.lib
-           ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXPvdSDK_static_64.lib
-           ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXCommon_64.lib
-           ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXFoundation_64.lib
-           ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXCharacterKinematic_static_64.lib
+            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PVDRuntime_64.lib
+            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXCharacterKinematic_static_64.lib
+            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXCommon_64.lib
+            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXCooking_64.lib
+            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXExtensions_static_64.lib
+            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXFoundation_64.lib
+            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXPvdSDK_static_64.lib
+            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXTask_static_64.lib
+
+            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysX_64.lib
         )
     elseif(UNIX)
         target_link_libraries(${PROJECT_NAME} PUBLIC
