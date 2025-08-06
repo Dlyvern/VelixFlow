@@ -202,7 +202,6 @@ target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
         $<INSTALL_INTERFACE:include/VelixFlow/PhysX>
 )
 
-
 if(VELIX_USE_PHYSX)
     if(WIN32)
         target_link_libraries(${PROJECT_NAME} PUBLIC
@@ -261,12 +260,13 @@ endif()
 target_include_directories(${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
 
 option(VELIX_USE_VULKAN "Use Vulkan rendering backend" ON)
-option(VELIX_USE_OPENGL "Use OpenGL rendering backend" OFF)
+option(VELIX_USE_OPENGL "Use OpenGL rendering backend" ON)
 
 if(VELIX_USE_VULKAN)
     message("Using Vulkan")
     add_subdirectory(backends/VelixVK)
-elseif(VELIX_USE_OPENGL)
+endif()
+    if(VELIX_USE_OPENGL)
     message("Using OpenGL")
     add_subdirectory(backends/VelixGL)
 else()

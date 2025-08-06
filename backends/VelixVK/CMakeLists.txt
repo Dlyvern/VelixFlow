@@ -37,6 +37,8 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${INCLUDE_DIR}
     ${CMAKE_SOURCE_DIR}/include
     ${Vulkan_INCLUDE_DIR}
+    ${GLFW_ROOT}/include/
+    ${GLM_ROOT}/include/
 )
 
 if(VELIX_PLATFORM_LINUX)

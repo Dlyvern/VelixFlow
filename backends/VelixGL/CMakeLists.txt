@@ -4,7 +4,8 @@ project(VelixGL)
 set(INCLUDE_DIR include)
 set(SRC_DIR src)
 
-set(GLAD_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/external/glad)
+set(GLAD_DIR ${CMAKE_CURRENT_SOURCE_DIR}/external/glad)
+set(GLAD_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/external/glad/include)
 
 file(GLOB_RECURSE PROJECT_HEADERS ${INCLUDE_DIR}/*.h ${INCLUDE_DIR}/*.hpp)
 file(GLOB_RECURSE PROJECT_SOURCES ${SRC_DIR}/*.cpp)
@@ -38,11 +39,11 @@ if(VELIX_PLATFORM_MACOS)
 endif()
 
 
-add_library(glad STATIC ${GLAD_INCLUDE_DIR}/src/glad.c)
+add_library(glad STATIC ${GLAD_DIR}/src/glad.c)
 
 target_include_directories(glad
         PUBLIC
-        $<BUILD_INTERFACE:${GLAD_INCLUDE_DIR}/include>
+        $<BUILD_INTERFACE:${GLAD_DIR}/include>
 )
 
 set_target_properties(glad PROPERTIES POSITION_INDEPENDENT_CODE ON)
@@ -52,8 +53,6 @@ file(GLOB SHADERS "${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.vert"
         "${CMAKE_CURRENT_SOURCE_DIR}/shaders/*.frag")
 
 set(EMBEDDED_SHADER_SOURCES "")
-
-message(${CMAKE_CURRENT_BINARY_DIR})
 
 foreach(SHADER ${SHADERS})
     get_filename_component(FILENAME ${SHADER} NAME)              # e.g., "text.vert"
@@ -101,6 +100,9 @@ set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_include_directories(${PROJECT_NAME} PUBLIC
     ${INCLUDE_DIR}
     ${CMAKE_SOURCE_DIR}/include
+    ${GLAD_INCLUDE_DIR}
+    ${GLFW_ROOT}/include/
+    ${GLM_ROOT}/include/
 )
 
 if(VELIX_PLATFORM_LINUX)
