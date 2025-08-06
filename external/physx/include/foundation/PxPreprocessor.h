@@ -516,7 +516,7 @@ protected:                  \
 	Class(const Class&);    \
 	Class& operator=(const Class&);
 
-#define DISABLE_CUDA_PHYSX
+//#define DISABLE_CUDA_PHYSX
 #ifndef DISABLE_CUDA_PHYSX
 	//CUDA is currently supported on x86_64 windows and linux, and ARM_64 linux
 	#define PX_SUPPORT_GPU_PHYSX ((PX_X64 && (PX_WINDOWS_FAMILY || PX_LINUX)) || (PX_A64 && PX_LINUX))

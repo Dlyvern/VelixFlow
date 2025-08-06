@@ -205,28 +205,32 @@ target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
 )
 
 if(VELIX_USE_PHYSX)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE PX_PHYSX_CHARACTER_STATIC_LIB PX_PHYSX_STATIC_LIB)
+
     if(WIN32)
         target_link_libraries(${PROJECT_NAME} PUBLIC
-            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PVDRuntime_64.lib
-            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXCharacterKinematic_static_64.lib
-            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXCommon_64.lib
-            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXCooking_64.lib
-            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXExtensions_static_64.lib
-            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXFoundation_64.lib
+            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysX_64.lib
             ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXPvdSDK_static_64.lib
+            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXVehicle2_static_64.lib
+            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXCharacterKinematic_static_64.lib
+            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXExtensions_static_64.lib
+            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXCooking_64.lib
+            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXCommon_64.lib
+            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXFoundation_64.lib
             ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXTask_static_64.lib
 
-            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysX_64.lib
         )
     elseif(UNIX)
         target_link_libraries(${PROJECT_NAME} PUBLIC
-            ${PHYSX_ROOT}/lib/linux/${PHYSX_BUILD_TYPE}/libPhysXExtensions_static_64.a
             ${PHYSX_ROOT}/lib/linux/${PHYSX_BUILD_TYPE}/libPhysX_static_64.a
             ${PHYSX_ROOT}/lib/linux/${PHYSX_BUILD_TYPE}/libPhysXPvdSDK_static_64.a
+            ${PHYSX_ROOT}/lib/linux/${PHYSX_BUILD_TYPE}/libPhysXVehicle2_static_64.a
+            ${PHYSX_ROOT}/lib/linux/${PHYSX_BUILD_TYPE}/libPhysXCharacterKinematic_static_64.a
+            ${PHYSX_ROOT}/lib/linux/${PHYSX_BUILD_TYPE}/libPhysXExtensions_static_64.a
+            ${PHYSX_ROOT}/lib/linux/${PHYSX_BUILD_TYPE}/libPhysXCooking_static_64.a
             ${PHYSX_ROOT}/lib/linux/${PHYSX_BUILD_TYPE}/libPhysXCommon_static_64.a
             ${PHYSX_ROOT}/lib/linux/${PHYSX_BUILD_TYPE}/libPhysXFoundation_static_64.a
-            ${PHYSX_ROOT}/lib/linux/${PHYSX_BUILD_TYPE}/libPhysXCharacterKinematic_static_64.a
-        )
+    )
     endif()
 endif()
 
@@ -241,11 +245,11 @@ if(WIN32)
     )
 elseif(APPLE)
     find_package(ZLIB REQUIRED)
-
+    find_package(Freetype REQUIRED)
     target_link_libraries(${PROJECT_NAME} PUBLIC
-            ${GLFW_ROOT}/lib/linux/libglfw3.a
-            ${FMOD_ROOT}/lib/linux/libfmod.so.14.8
-            ${FREETYPE_ROOT}/lib/linux/libfreetype.a
+            ${GLFW_ROOT}/lib/macos/libglfw3.a
+            # ${FMOD_ROOT}/lib/linux/libfmod.dylib Change to .dylib
+            ${FREETYPE_LIBRARIES}
             assimp
             ZLIB::ZLIB
             ${COCOA_LIBRARY}
@@ -261,6 +265,8 @@ elseif(UNIX)
             ${LIBZ_ROOT}/lib/linux/libz.a
             assimp
             Threads::Threads
+            pthread
+            dl
     )
 endif()
 
