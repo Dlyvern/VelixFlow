@@ -6,13 +6,14 @@
 #include "VelixFlow/Signal.hpp"
 
 #ifdef _WIN32
-#include <winsock2.h>
-using socklen_t = int;
+    #include <winsock2.h>
+    #include <ws2tcpip.h>
+    using socklen_t = int;
 #else
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <unistd.h>
+    #include <arpa/inet.h>
+    #include <netinet/in.h>
+    #include <sys/socket.h>
+    #include <unistd.h>
 #endif
 
 ELIX_NAMESPACE_BEGIN

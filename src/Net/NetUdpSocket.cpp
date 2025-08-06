@@ -46,8 +46,8 @@ namespace net
         sockaddr_in from{};
         socklen_t fromLen = sizeof(from);
 
-        int received = recvfrom(m_socket, (char*)buffer, sizeof(buffer), MSG_DONTWAIT, (sockaddr*)&from, &fromLen);
-
+        // int received = recvfrom(m_socket, (char*)buffer, sizeof(buffer), MSG_DONTWAIT, (sockaddr*)&from, &fromLen);
+        int received{0};
         if(received <= 0)
             return;
 

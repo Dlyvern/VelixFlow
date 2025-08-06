@@ -1,10 +1,12 @@
 @echo off
 setlocal enabledelayedexpansion
 
+:: Configuration
 set PHYSX_BUILD_TYPE=checked
 set PHYSX_ROOT=%cd%\external\physx
 set PHYSX_TMP=%PHYSX_ROOT%\tmp
 set PHYSX_LIB_OUTPUT=%PHYSX_ROOT%\lib\windows\%PHYSX_BUILD_TYPE%
+set PHYSX_SOURCE_DIR=%PHYSX_TMP%\PhysX\physx
 
 echo [VelixFlow] Cleaning old PhysX build if exists...
 rmdir /S /Q "%PHYSX_TMP%" 2>nul
@@ -12,43 +14,29 @@ mkdir "%PHYSX_TMP%"
 cd "%PHYSX_TMP%"
 
 echo [VelixFlow] Cloning NVIDIA PhysX SDK...
-git clone https://github.com/NVIDIA-Omniverse/PhysX.git
+git clone https://github.com/NVIDIA-Omniverse/PhysX.git --depth 1
 
-cd PhysX\physx
-
-set "PRESET_FILE=%PHYSX_TMP%\PhysX\physx\buildtools\presets\public\vc17win64.xml"
-
-if exist "%PRESET_FILE%" (
-    echo [VelixFlow] Patching PhysX preset to disable GPU projects...
-    
-    powershell -Command "(Get-Content '%PRESET_FILE%') -replace '<CMakeSwitch name=\""PX_GENERATE_GPU_PROJECTS\"" value=\""True\""/>', '<CMakeSwitch name=\""PX_GENERATE_GPU_PROJECTS\"" value=\""False\""/>' | Set-Content -Path '%PRESET_FILE%'"
-    
-    powershell -Command "(Get-Content '%PRESET_FILE%') -replace '<CMakeSwitch name=\""PX_GENERATE_GPU_PROJECTS_ONLY\"" value=\""True\""/>', '<CMakeSwitch name=\""PX_GENERATE_GPU_PROJECTS_ONLY\"" value=\""False\""/>' | Set-Content -Path '%PRESET_FILE%'"
-    
-    echo [VelixFlow] PhysX preset patched.
-) else (
-    echo [VelixFlow] Warning: PhysX preset file not found: %PRESET_FILE%
-)
+cd "%PHYSX_SOURCE_DIR%"
 
 echo [VelixFlow] Generating Visual Studio project files...
-call generate_projects.bat vc17win64
+call generate_projects.bat vc17win64-cpu-only
 
 echo [VelixFlow] Building PhysX in %PHYSX_BUILD_TYPE% mode...
-cd compiler\vc17win64
-msbuild PhysX.sln /p:Configuration=%PHYSX_BUILD_TYPE% /p:Platform=x64 /m
-cd ..\..
+cd "%PHYSX_SOURCE_DIR%\compiler\vc17win64-cpu-only"
+msbuild PhysXSDK.sln /p:Configuration=%PHYSX_BUILD_TYPE% /p:Platform=x64 /m /nr:false
 
-echo [VelixFlow] Building PhysX in %PHYSX_BUILD_TYPE% mode...
-msbuild compiler\vc17win64\PhysX.sln /p:Configuration=%PHYSX_BUILD_TYPE% /p:Platform=x64 /m
+if errorlevel 1 (
+    echo [VelixFlow] Error: Failed to build PhysX
+    exit /b 1
+)
 
 echo [VelixFlow] Moving built .lib files to %PHYSX_LIB_OUTPUT%...
-mkdir "%PHYSX_LIB_OUTPUT%"
-for /r ".\bin\win.x86_64.vc143.%PHYSX_BUILD_TYPE%" %%f in (*.lib) do (
-    copy "%%f" "%PHYSX_LIB_OUTPUT%" >nul
-)
+mkdir "%PHYSX_LIB_OUTPUT%" 2>nul
+
+robocopy "%PHYSX_SOURCE_DIR%\bin\win.x86_64.vc143.mt/%PHYSX_BUILD_TYPE%" "%PHYSX_LIB_OUTPUT%" *.lib /njh /njs /ndl /nc /ns /np >nul
 
 echo [VelixFlow] Cleaning up PhysX source...
 cd "%PHYSX_ROOT%"
-rmdir /S /Q "tmp"
+rmdir /S /Q "%PHYSX_TMP%"
 
 echo [VelixFlow] PhysX built and installed to %PHYSX_LIB_OUTPUT%

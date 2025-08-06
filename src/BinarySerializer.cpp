@@ -83,6 +83,8 @@ std::unique_ptr<AssetModel> BinarySerializer::deserializeModel(BinaryLoader& rea
     // std::unique_ptr<elix::Model> model = std::make_unique<elix::Model>(modelName, std::move(meshes));
 
     // return std::make_unique<elix::AssetModel>(std::move(model));
+
+    return nullptr;
 }
 
 bool BinarySerializer::writeElixPacket(const std::string& filePath, const std::vector<elix::AssetModel*>& models)

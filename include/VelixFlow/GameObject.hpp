@@ -14,6 +14,8 @@
 #include <typeindex>
 #include <unordered_map>
 
+#include <string>
+
 template<typename T>
 struct IsMultiComponent {
     static constexpr bool value = false;

@@ -3,15 +3,12 @@ project(VelixFlow)
 
 if(WIN32)
     set(VELIX_PLATFORM "windows")
-    set(VELIX_PLATFORM_WINDOWS ON)
     message(STATUS "Building for Windows platform")
 elseif(UNIX)
     set(VELIX_PLATFORM "linux")
-    set(VELIX_PLATFORM_LINUX ON)
     message(STATUS "Building for Linux platform")
 elseif(APPLE)
     set(VELIX_PLATFORM "macos")
-    set(VELIX_PLATFORM_MACOS ON)
     message(STATUS "Building for macOS platform")
 else()
     message(FATAL_ERROR "Unsupported platform!")
@@ -37,56 +34,8 @@ set(FREETYPE_ROOT ${CMAKE_SOURCE_DIR}/external/freetype)
 set(LIBZ_ROOT ${CMAKE_SOURCE_DIR}/external/libz)
 set(FMOD_ROOT ${CMAKE_SOURCE_DIR}/external/fmod)
 
-option(VELIX_USE_PHYSX "Enable NVIDIA PhysX support" ON)
-
-if(VELIX_PLATFORM_MACOS)
-    message(WARNING "PhysX is not supported on macOS. Disabling PhysX.")
-    set(VELIX_USE_PHYSX OFF)
-endif()
-
-set(PHYSX_BUILD_TYPE "checked" CACHE STRING "The build type of PhysX")
-
-set_property(CACHE PHYSX_BUILD_TYPE PROPERTY STRINGS debug checked profile release)
-
-# === Build Mode ===
-if(VELIX_USE_PHYSX)
-    set(PHYSX_BUILD_TYPE "checked" CACHE STRING "The build type of PhysX")
-    set_property(CACHE PHYSX_BUILD_TYPE PROPERTY STRINGS debug checked profile release)
-endif()
-
-# === Source Files ===
 file(GLOB_RECURSE PROJECT_HEADERS ${INCLUDE_DIR}/*.h ${INCLUDE_DIR}/*.hpp)
 file(GLOB_RECURSE PROJECT_SOURCES ${SRC_DIR}/*.cpp)
-
-# === Build Mode ===
-if(NOT CMAKE_BUILD_TYPE)
-    if(VELIX_USE_PHYSX)
-        if(PHYSX_BUILD_TYPE STREQUAL "debug" OR PHYSX_BUILD_TYPE STREQUAL "checked")
-            set(CMAKE_BUILD_TYPE "Debug")
-        else()
-            set(CMAKE_BUILD_TYPE "Release")
-        endif()
-    else()
-        set(CMAKE_BUILD_TYPE "Release")
-    endif()
-endif()
-
-# === Output Messages ===
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    if(VELIX_USE_PHYSX)
-        message("Building in Debug with PhysX ${PHYSX_BUILD_TYPE}")
-    else()
-        message("Building in Debug without PhysX")
-    endif()
-    add_compile_definitions(_DEBUG)
-else()
-    if(VELIX_USE_PHYSX)
-        message("Building in Release with PhysX ${PHYSX_BUILD_TYPE}")
-    else()
-        message("Building in Release without PhysX")
-    endif()
-    add_compile_definitions(NDEBUG)
-endif()
 
 include(FetchContent)
 
@@ -121,28 +70,71 @@ endif()
 # === External Dependencies ===
 find_package(Threads REQUIRED)
 
-if(VELIX_PLATFORM_WINDOWS)
+if(WIN32)
     add_definitions(-DNOMINMAX)
 endif()
 
+option(VELIX_USE_PHYSX "Enable NVIDIA PhysX support" ON)
+
+if(APPLE)
+    message(WARNING "PhysX is not supported on macOS. Disabling PhysX.")
+    set(VELIX_USE_PHYSX OFF)
+endif()
+
+set(PHYSX_BUILD_TYPE "checked" CACHE STRING "The build type of PhysX")
+
+set_property(CACHE PHYSX_BUILD_TYPE PROPERTY STRINGS debug checked profile release)
+
+if(VELIX_USE_PHYSX)
+    set(PHYSX_BUILD_TYPE "checked" CACHE STRING "The build type of PhysX")
+    set_property(CACHE PHYSX_BUILD_TYPE PROPERTY STRINGS debug checked profile release)
+endif()
+
+if(NOT CMAKE_BUILD_TYPE)
+    if(VELIX_USE_PHYSX)
+        if(PHYSX_BUILD_TYPE STREQUAL "debug" OR PHYSX_BUILD_TYPE STREQUAL "checked")
+            set(CMAKE_BUILD_TYPE "Debug")
+        else()
+            set(CMAKE_BUILD_TYPE "Release")
+        endif()
+    else()
+        set(CMAKE_BUILD_TYPE "Release")
+    endif()
+endif()
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    if(VELIX_USE_PHYSX)
+        message("Building in Debug with PhysX ${PHYSX_BUILD_TYPE}")
+    else()
+        message("Building in Debug without PhysX")
+    endif()
+    add_compile_definitions(_DEBUG)
+else()
+    if(VELIX_USE_PHYSX)
+        message("Building in Release with PhysX ${PHYSX_BUILD_TYPE}")
+    else()
+        message("Building in Release without PhysX")
+    endif()
+    add_compile_definitions(NDEBUG)
+endif()
 
 set(PHYSX_LIB_DIR "${PHYSX_ROOT}/lib/${VELIX_PLATFORM}/${PHYSX_BUILD_TYPE}")
 set(PHYSX_LIB_EXPECTED "${PHYSX_LIB_DIR}/libPhysX_static_64.a")
 
-if(VELIX_PLATFORM_WINDOWS)
-    set(PHYSX_LIB_EXPECTED "${PHYSX_LIB_DIR}/PhysX_static_64.lib")
+if(WIN32)
+    set(PHYSX_LIB_EXPECTED "${PHYSX_LIB_DIR}/PhysXExtensions_static_64.lib")
 endif()
 
 if(VELIX_USE_PHYSX AND NOT EXISTS "${PHYSX_LIB_EXPECTED}")
     message(STATUS "Prebuilt PhysX not found. Building it manually...")
 
-    if(VELIX_PLATFORM_WINDOWS)
+    if(WIN32)
         execute_process(
             COMMAND ${CMAKE_SOURCE_DIR}/scripts/build_physx_windows.bat
             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
             RESULT_VARIABLE PHYSX_BUILD_RESULT
         )
-    elseif(VELIX_PLATFORM_LINUX)
+    elseif(UNIX)
         execute_process(
             COMMAND bash ${CMAKE_SOURCE_DIR}/scripts/build_physx_linux.sh
             WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
@@ -212,16 +204,15 @@ target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
 
 
 if(VELIX_USE_PHYSX)
-    if(VELIX_PLATFORM_WINDOWS)
+    if(WIN32)
         target_link_libraries(${PROJECT_NAME} PUBLIC
            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXExtensions_static_64.lib
-           ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysX_static_64.lib
            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXPvdSDK_static_64.lib
-           ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXCommon_static_64.lib
-           ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXFoundation_static_64.lib
+           ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXCommon_64.lib
+           ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXFoundation_64.lib
            ${PHYSX_ROOT}/lib/windows/${PHYSX_BUILD_TYPE}/PhysXCharacterKinematic_static_64.lib
         )
-    elseif(VELIX_PLATFORM_LINUX)
+    elseif(UNIX)
         target_link_libraries(${PROJECT_NAME} PUBLIC
             ${PHYSX_ROOT}/lib/linux/${PHYSX_BUILD_TYPE}/libPhysXExtensions_static_64.a
             ${PHYSX_ROOT}/lib/linux/${PHYSX_BUILD_TYPE}/libPhysX_static_64.a
@@ -234,7 +225,7 @@ if(VELIX_USE_PHYSX)
 endif()
 
 # === Link Libraries ===
-if(VELIX_PLATFORM_WINDOWS)
+if(WIN32)
     target_link_libraries(${PROJECT_NAME} PUBLIC
 #            ${LIBZ_ROOT}/lib/windows/zlib.lib
             ${GLFW_ROOT}/lib/windows/glfw3.lib
@@ -242,34 +233,32 @@ if(VELIX_PLATFORM_WINDOWS)
             ${FREETYPE_ROOT}/lib/windows/freetype.lib
             Threads::Threads
     )
-elseif(VELIX_PLATFORM_MACOS)
+elseif(APPLE)
     find_package(ZLIB REQUIRED)
 
     target_link_libraries(${PROJECT_NAME} PUBLIC
             ${GLFW_ROOT}/lib/linux/libglfw3.a
-            ${ASSIMP_ROOT}/lib/linux/libassimp.a
-            assimp
             ${FMOD_ROOT}/lib/linux/libfmod.so.14.8
             ${FREETYPE_ROOT}/lib/linux/libfreetype.a
+            assimp
             ZLIB::ZLIB
             ${COCOA_LIBRARY}
             ${IOKIT_LIBRARY}
             ${COREVIDEO_LIBRARY}
             Threads::Threads
     )
-else()
+elseif(UNIX)
     target_link_libraries(${PROJECT_NAME} PUBLIC
             ${GLFW_ROOT}/lib/linux/libglfw3.a
             ${FMOD_ROOT}/lib/linux/libfmod.so.14.8
-            assimp
             ${FREETYPE_ROOT}/lib/linux/libfreetype.a
-            Threads::Threads
             ${LIBZ_ROOT}/lib/linux/libz.a
+            assimp
+            Threads::Threads
     )
 endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
-
 
 option(VELIX_USE_VULKAN "Use Vulkan rendering backend" ON)
 option(VELIX_USE_OPENGL "Use OpenGL rendering backend" OFF)
@@ -283,7 +272,6 @@ elseif(VELIX_USE_OPENGL)
 else()
     message("No rendering backend selected")
 endif()
-
         
 install(TARGETS VelixFlow
         EXPORT VelixFlowTargets
@@ -293,7 +281,7 @@ install(TARGETS VelixFlow
         INCLUDES DESTINATION include
 )
 
-if(VELIX_PLATFORM_LINUX)
+if(UNIX)
     set_target_properties(${PROJECT_NAME} PROPERTIES
         BUILD_RPATH "${FMOD_ROOT}/lib/linux"
         INSTALL_RPATH "$ORIGIN"
