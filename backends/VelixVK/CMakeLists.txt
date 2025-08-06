@@ -37,23 +37,21 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${INCLUDE_DIR}
     ${CMAKE_SOURCE_DIR}/include
     ${Vulkan_INCLUDE_DIR}
-    ${GLFW_ROOT}/include/
-    ${GLM_ROOT}/include/
 )
 
-if(VELIX_PLATFORM_LINUX)
+if(UNIX)
     target_link_libraries(${PROJECT_NAME} PUBLIC
         pthread
         VelixFlow
         ${Vulkan_LIBRARIES}
     )
-elseif(VELIX_PLATFORM_WINDOWS)
+elseif(WIN32)
     target_link_libraries(${PROJECT_NAME} PUBLIC
         ${Vulkan_LIBRARIES}
         VelixFlow
     )
 
-elseif(VELIX_PLATFORM_MACOS)
+elseif(APPLE)
     target_link_libraries(${PROJECT_NAME} PUBLIC 
         ${Vulkan_LIBRARIES}
         VelixFlow

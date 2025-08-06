@@ -28,7 +28,7 @@ if(NOT TARGET OpenGL::OpenGL)
     endif()
 endif()
 
-if(VELIX_PLATFORM_MACOS)
+if(APPLE)
     add_compile_options(-std=c++23)
     add_definitions(-DGL_SILENCE_DEPRECATION)
 
@@ -105,20 +105,20 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${GLM_ROOT}/include/
 )
 
-if(VELIX_PLATFORM_LINUX)
+if(UNIX)
     target_link_libraries(${PROJECT_NAME} PUBLIC
         OpenGL::GL
         glad
         VelixFlow
     )
-elseif(VELIX_PLATFORM_WINDOWS)
+elseif(WIN32)
     target_link_libraries(${PROJECT_NAME} PUBLIC
         OpenGL::GL
         glad
         VelixFlow
     )
 
-elseif(VELIX_PLATFORM_MACOS)
+elseif(APPLE)
     target_link_libraries(${PROJECT_NAME} PUBLIC 
         ${OPENGL_LIBRARY}
         glad
