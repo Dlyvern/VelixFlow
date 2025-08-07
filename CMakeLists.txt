@@ -56,6 +56,11 @@ function(use_or_fetch name root_dir lib_path git_repo git_tag)
                 GIT_REPOSITORY ${git_repo}
                 GIT_TAG ${git_tag}
         )
+
+    if(${name} STREQUAL "assimp")
+        set(ASSIMP_WARNINGS_AS_ERRORS OFF CACHE BOOL "" FORCE)
+    endif()
+    
         FetchContent_MakeAvailable(${name})
     endif()
 endfunction()

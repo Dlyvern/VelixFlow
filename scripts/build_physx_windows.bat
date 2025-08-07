@@ -23,7 +23,8 @@ call generate_projects.bat vc17win64-cpu-only
 
 echo [VelixFlow] Building PhysX in %PHYSX_BUILD_TYPE% mode...
 cd "%PHYSX_SOURCE_DIR%\compiler\vc17win64-cpu-only"
-msbuild PhysXSDK.sln /p:Configuration=%PHYSX_BUILD_TYPE% /p:Platform=x64 /m /nr:false
+
+msbuild PhysXSDK.sln /p:Configuration=Checked
 
 if errorlevel 1 (
     echo [VelixFlow] Error: Failed to build PhysX
