@@ -10,6 +10,7 @@ elseif(UNIX)
 elseif(APPLE)
     set(VELIX_PLATFORM "macos")
     message(STATUS "Building for macOS platform")
+    set(CMAKE_OSX_ARCHITECTURES arm64)
 else()
     message(FATAL_ERROR "Unsupported platform!")
 endif()
@@ -60,7 +61,7 @@ function(use_or_fetch name root_dir lib_path git_repo git_tag)
     if(${name} STREQUAL "assimp")
         set(ASSIMP_WARNINGS_AS_ERRORS OFF CACHE BOOL "" FORCE)
     endif()
-    
+
         FetchContent_MakeAvailable(${name})
     endif()
 endfunction()
@@ -251,6 +252,7 @@ if(WIN32)
 elseif(APPLE)
     find_package(ZLIB REQUIRED)
     find_package(Freetype REQUIRED)
+    
     target_link_libraries(${PROJECT_NAME} PUBLIC
             ${GLFW_ROOT}/lib/macos/libglfw3.a
             # ${FMOD_ROOT}/lib/linux/libfmod.dylib Change to .dylib

@@ -29,14 +29,15 @@ namespace physics
         [[nodiscard]] physx::PxMaterial* getDefaultMaterial() const;
         [[nodiscard]] physx::PxScene* getScene() const;
     private:
+    #ifdef VELIX_USE_PHYSX
         physx::PxPhysics* m_physics{nullptr};
         physx::PxScene* m_scene{nullptr};
         physx::PxFoundation* m_foundation{nullptr};
         physx::PxDefaultAllocator m_defaultAllocator;
         physx::PxPvd* m_pvd{nullptr};
         physx::PxControllerManager* m_controllerManager{nullptr};
-
         physx::PxMaterial* m_defaultMaterial{nullptr};
+    #endif
     };
 } //namespace physics
 

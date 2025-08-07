@@ -1,3 +1,7 @@
+#ifndef VELIX_USE_PHYSX
+    #pragma message("PhysX is disabled, skipping Physics.cpp")
+#else
+
 #include "VelixFlow/Physics/Physics.hpp"
 #include <iostream>
 #include "VelixFlow/Components/RigidbodyComponent.hpp"
@@ -30,7 +34,6 @@ void physics::PhysicsController::init()
     m_defaultMaterial = m_physics->createMaterial(0.5f, 0.5f, 0.6f);
 
     m_controllerManager = PxCreateControllerManager(*m_scene);
-
 #endif
 }
 
@@ -273,3 +276,4 @@ void physics::PhysicsController::resizeCollider(const glm::vec3 &newSize, std::s
     ELIX_LOG_ERROR("Physics disabled: resizeCollider does nothing");
 #endif //VELIX_USE_PHYSX
 }
+#endif
