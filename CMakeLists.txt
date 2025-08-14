@@ -176,7 +176,7 @@ else()
     message("No rendering backend selected")
 endif()
     
-install(TARGETS VelixFlow
+install(TARGETS ${PROJECT_NAME}
         EXPORT VelixFlowTargets
         ARCHIVE DESTINATION lib
         LIBRARY DESTINATION lib
@@ -186,10 +186,11 @@ install(TARGETS VelixFlow
 
 if(UNIX)
     set_target_properties(${PROJECT_NAME} PROPERTIES
-        BUILD_RPATH "${FMOD_ROOT}/lib/linux"
-        INSTALL_RPATH "$ORIGIN"
+        BUILD_RPATH "$ORIGIN/../lib"
+        INSTALL_RPATH "$ORIGIN/lib"
     )
 endif()
+
 
 install(DIRECTORY include/ DESTINATION include)
 install(DIRECTORY ${GLM_ROOT}/include/ DESTINATION include/VelixFlow/glm)
@@ -198,7 +199,19 @@ install(DIRECTORY ${ASSIMP_ROOT}/include/ DESTINATION include/VelixFlow/assimp)
 install(DIRECTORY ${FREETYPE_ROOT}/include/ DESTINATION include/VelixFlow/freetype)
 install(DIRECTORY ${FMOD_ROOT}/include/ DESTINATION include/VelixFlow/fmod)
 
-# === Install CMake Config Package ===
+if(UNIX)
+    install(FILES ${FMOD_ROOT}/lib/linux/libfmod.so.14.8 DESTINATION lib)
+    install(CODE "execute_process(COMMAND ln -sf libfmod.so.14.8 \${CMAKE_INSTALL_PREFIX}/lib/libfmod.so.14)")
+endif()
+
+if(APPLE)
+    install(FILES ${FMOD_ROOT}/lib/macos/libfmod.dylib DESTINATION lib)
+endif()
+
+if(WIN32)
+    install(FILES ${FMOD_ROOT}/lib/windows/fmod.dll DESTINATION bin)
+endif()
+
 install(EXPORT VelixFlowTargets
         FILE VelixFlowTargets.cmake
         NAMESPACE Velix::
