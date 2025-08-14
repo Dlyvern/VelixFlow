@@ -6,6 +6,7 @@
 #include "VelixFlow/UI/UIFont.hpp"
 
 #include <unordered_map>
+#include <cstdint>
 
 ELIX_NAMESPACE_BEGIN
 

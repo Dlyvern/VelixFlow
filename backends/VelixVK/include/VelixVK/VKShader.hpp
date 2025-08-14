@@ -5,6 +5,7 @@
 #include "VelixFlow/RenderAPI/Interface/IShader.hpp"
 
 #include "VelixFlow/RenderAPI/Interface/IRenderContext.hpp"
+#include <cstdint>
 
 #include "vulkan/vulkan.h"
 

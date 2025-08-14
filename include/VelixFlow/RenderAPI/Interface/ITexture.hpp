@@ -5,6 +5,7 @@
 #include "VelixFlow/RenderAPI/TextureParameters.hpp"
 
 #include <string>
+#include <cstdint>
 
 ELIX_NAMESPACE_BEGIN
 

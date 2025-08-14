@@ -4,6 +4,7 @@
 #include "VelixFlow/DefaultMacros.hpp"
 #include "VelixFlow/RenderAPI/Interface/ITexture.hpp"
 #include "VelixFlow/Image.hpp"
+#include <cstdint>
 
 ELIX_NAMESPACE_BEGIN
 

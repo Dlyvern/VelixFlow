@@ -4,6 +4,7 @@
 #include <glm/vec3.hpp>
 #include <glm/trigonometric.hpp>
 #include <glm/mat4x4.hpp>
+#include <cstdint>
 
 namespace lighting
 {

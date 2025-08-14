@@ -5,6 +5,7 @@
 #include "VelixFlow/Vertex.hpp"
 
 #include <vector>
+#include <cstdint>
 
 ELIX_NAMESPACE_BEGIN
 

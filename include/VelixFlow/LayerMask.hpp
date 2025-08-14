@@ -2,6 +2,7 @@
 #define LAYER_MASK_HPP
 
 #include "VelixFlow/DefaultMacros.hpp"
+#include <cstdint>
 
 ELIX_NAMESPACE_BEGIN
 

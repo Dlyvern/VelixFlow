@@ -5,6 +5,7 @@
 #include <string>
 #include "DefaultMacros.hpp"
 #include "Logger.hpp"
+#include <cstdint>
 
 #if defined(_WIN32)
     #include <windows.h>

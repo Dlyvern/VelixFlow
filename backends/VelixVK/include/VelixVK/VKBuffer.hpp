@@ -3,6 +3,7 @@
 
 #include "VelixFlow/DefaultMacros.hpp"
 #include "vulkan/vulkan.h"
+#include <cstdint>
 
 ELIX_NAMESPACE_BEGIN
 

@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "VelixFlow/RenderAPI/Interface/IRenderContext.hpp"
+#include <cstdint>
 
 #include <optional>
 

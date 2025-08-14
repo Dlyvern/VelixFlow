@@ -8,6 +8,7 @@
 
 #include <memory>
 #include <iostream>
+#include <cstdint>
 
 ELIX_NAMESPACE_BEGIN
 

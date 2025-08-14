@@ -3,6 +3,7 @@
 
 #include <unordered_map>
 #include <memory>
+#include <cstdint>
 
 #include "VelixFlow/RenderAPI/Interface/IShader.hpp"
 

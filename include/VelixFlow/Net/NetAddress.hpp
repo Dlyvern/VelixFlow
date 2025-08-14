@@ -3,6 +3,7 @@
 
 #include "VelixFlow/DefaultMacros.hpp"
 #include <string>
+#include <cstdint>
 
 ELIX_NAMESPACE_BEGIN
 

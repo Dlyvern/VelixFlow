@@ -133,10 +133,12 @@ if(WIN32)
 elseif(APPLE)
     find_package(ZLIB REQUIRED)
     find_package(Freetype REQUIRED)
-    
+    find_package(glfw3 REQUIRED)
+
     target_link_libraries(${PROJECT_NAME} PUBLIC
-            ${GLFW_ROOT}/lib/macos/libglfw3.a
+            # ${GLFW_ROOT}/lib/macos/libglfw3.a
             # ${FMOD_ROOT}/lib/linux/libfmod.dylib Change to .dylib
+            glfw
             ${FREETYPE_LIBRARIES}
             assimp
             ZLIB::ZLIB

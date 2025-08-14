@@ -2,6 +2,7 @@
 #define PHYSICS_HPP
 
 #include <memory>
+#include <cstdint>
 
 #if VELIX_USE_PHYSX
     #include "PxConfig.h"

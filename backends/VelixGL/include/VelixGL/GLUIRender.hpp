@@ -5,6 +5,7 @@
 #include "VelixFlow/RenderAPI/Interface/IRenderPass.hpp"
 #include "VelixFlow/UI/UIWidget.hpp"
 #include "VelixGL/GLFontCache.hpp"
+#include <cstdint>
 
 ELIX_NAMESPACE_BEGIN
 

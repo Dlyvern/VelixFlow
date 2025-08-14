@@ -7,6 +7,7 @@
 #include "VelixFlow/RenderAPI/Interface/IMesh.hpp"
 
 #include <vector>
+#include <cstdint>
 
 ELIX_NAMESPACE_BEGIN
 

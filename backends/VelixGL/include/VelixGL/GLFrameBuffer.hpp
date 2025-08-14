@@ -3,6 +3,7 @@
 
 #include <set>
 #include <vector>
+#include <cstdint>
 
 #include "VelixFlow/DefaultMacros.hpp"
 

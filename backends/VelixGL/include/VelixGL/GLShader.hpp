@@ -4,6 +4,7 @@
 #include "VelixFlow/RenderAPI/Interface/IShader.hpp"
 #include "VelixFlow/DefaultMacros.hpp"
 #include <unordered_map>
+#include <cstdint>
 
 //TODO maybe we do need shader namespace
 
