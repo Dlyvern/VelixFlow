@@ -6,6 +6,7 @@
 #include "DefaultMacros.hpp"
 #include "Logger.hpp"
 #include <cstdint>
+#include <array>
 
 #if defined(_WIN32)
     #include <windows.h>
@@ -30,12 +31,13 @@ namespace filesystem
         std::string homeDir;
 
         #ifdef _WIN32
-            char path[MAX_PATH];
-            if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_PROFILE, NULL, 0, path)))
-                homeDir = path;
-            else
-                if (const char* userProfile = getenv("USERPROFILE"))
-                    homeDir = userProfile;
+            char* envValue = nullptr;
+            size_t len = 0;
+            if (_dupenv_s(&envValue, &len, "USERPROFILE") == 0 && envValue != nullptr)
+            {
+                homeDir = envValue;
+                free(envValue);
+            }
         #else
             if (const char* homeEnv = getenv("HOME"))
                 homeDir = homeEnv; 
@@ -65,7 +67,7 @@ namespace filesystem
     inline std::pair<int, std::string> executeCommand(const std::string& command)
     {
         constexpr int kBufferSize = 128;
-        std::array<char, kBufferSize> buffer;
+        std::array<char, kBufferSize> buffer{};
         std::string result;
 
 #ifdef _WIN32
@@ -74,13 +76,16 @@ namespace filesystem
         std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(command.c_str(), "r"), pclose);
 #endif
 
-        if (!pipe)
+        if (!pipe) 
+        {
             ELIX_LOG_ERROR("Failed to execute command");
+            return {-1, ""};
+        }
 
-        while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr)
+        while (fgets(buffer.data(), static_cast<int>(buffer.size()), pipe.get()) != nullptr)
             result += buffer.data();
 
-        const int executionResult = std::system(command.c_str());
+        int executionResult = std::system(command.c_str());
 
         return {executionResult, result};
     }

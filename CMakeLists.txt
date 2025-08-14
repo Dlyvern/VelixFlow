@@ -126,6 +126,7 @@ if(WIN32)
     target_link_libraries(${PROJECT_NAME} PUBLIC
 #            ${LIBZ_ROOT}/lib/windows/zlib.lib
             ${GLFW_ROOT}/lib/windows/glfw3.lib
+            ${FMOD_ROOT}/lib/windows/fmod.dll
             assimp
             ${FREETYPE_ROOT}/lib/windows/freetype.lib
             Threads::Threads
@@ -209,9 +210,9 @@ endif()
 #     install(FILES ${FMOD_ROOT}/lib/macos/libfmod.dylib DESTINATION lib)
 # endif()
 
-# if(WIN32)
-#     install(FILES ${FMOD_ROOT}/lib/windows/fmod.dll DESTINATION bin)
-# endif()
+if(WIN32)
+    install(FILES ${FMOD_ROOT}/lib/windows/fmod.dll DESTINATION lib)
+endif()
 
 install(EXPORT VelixFlowTargets
         FILE VelixFlowTargets.cmake
