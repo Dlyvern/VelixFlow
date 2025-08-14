@@ -3,7 +3,7 @@
 
 bool physics::raycasting::shoot(const Ray &ray, RaycastingResult &result)
 {
-#ifdef VELIX_USE_PHYSX
+#if VELIX_USE_PHYSX
     glm::vec3 direction = glm::normalize(ray.direction);
 
     physx::PxQueryFilterData filterData;

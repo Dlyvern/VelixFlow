@@ -10,7 +10,9 @@ namespace physics::raycasting
     public:
         glm::vec3 point;
         float distance;
+#if VELIX_USE_PHYSX
         physx::PxRaycastBuffer hit;
+#endif
     };
 
     struct Ray

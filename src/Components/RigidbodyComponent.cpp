@@ -10,7 +10,7 @@ namespace components
 {
     RigidbodyComponent::RigidbodyComponent(const std::shared_ptr<GameObject> &object)
     {
-#ifdef VELIX_USE_PHYSX
+#if VELIX_USE_PHYSX
         m_rigidActor = physics::PhysicsController::instance().addStaticActor(object);
 
         if (!m_rigidActor)
@@ -22,7 +22,7 @@ namespace components
 
     void RigidbodyComponent::update(float deltaTime)
     {
-#ifdef VELIX_USE_PHYSX
+#if VELIX_USE_PHYSX
 
         if (!m_rigidActor)
             return;
@@ -35,7 +35,7 @@ namespace components
 #endif
     }
 
-#ifdef VELIX_USE_PHYSX
+#if VELIX_USE_PHYSX
     physx::PxRigidActor* RigidbodyComponent::getRigidActor() const
     {
         return m_rigidActor;
@@ -45,7 +45,7 @@ namespace components
     {
         IComponent::destroy();
 
-#ifdef VELIX_USE_PHYSX
+#if VELIX_USE_PHYSX
 
         if (m_rigidActor)
         {
@@ -57,7 +57,7 @@ namespace components
 
     void RigidbodyComponent::onOwnerPositionChanged(const glm::vec3& position)
     {
-#ifdef VELIX_USE_PHYSX
+#if VELIX_USE_PHYSX
         if (!m_rigidActor)
             return;
         m_rigidActor->setGlobalPose({position.x, position.y, position.z});

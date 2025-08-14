@@ -19,13 +19,13 @@ namespace components
 
         void update(float deltaTime) override;
 
-    #ifdef VELIX_USE_PHYSX
+    #if VELIX_USE_PHYSX
         [[nodiscard]] physx::PxRigidActor* getRigidActor() const;
     #endif
-    
+
         void destroy() override;
     private:
-    #ifdef VELIX_USE_PHYSX
+    #if VELIX_USE_PHYSX
         physx::PxRigidActor* m_rigidActor{nullptr};
     #endif
 

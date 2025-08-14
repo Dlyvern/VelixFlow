@@ -3,7 +3,7 @@
 
 #include <memory>
 
-#ifdef VELIX_USE_PHYSX
+#if VELIX_USE_PHYSX
     #include "PxConfig.h"
     #include "PxPhysicsAPI.h"
 #endif
@@ -23,7 +23,7 @@ namespace physics
 
         void release();
 
-    #ifdef VELIX_USE_PHYSX
+    #if VELIX_USE_PHYSX
         [[nodiscard]] physx::PxRigidDynamic* addDynamicActor(std::shared_ptr<elix::GameObject> actor) const;
         [[nodiscard]] physx::PxRigidStatic* addStaticActor(std::shared_ptr<elix::GameObject> actor) const;
         [[nodiscard]] physx::PxControllerManager* getControllerManager() const;
@@ -31,7 +31,7 @@ namespace physics
         [[nodiscard]] physx::PxScene* getScene() const;
     #endif
     private:
-    #ifdef VELIX_USE_PHYSX
+    #if VELIX_USE_PHYSX
         physx::PxPhysics* m_physics{nullptr};
         physx::PxScene* m_scene{nullptr};
         physx::PxFoundation* m_foundation{nullptr};

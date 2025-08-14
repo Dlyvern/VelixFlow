@@ -4,7 +4,7 @@
 #include "VelixFlow/Logger.hpp"
 #include "VelixFlow/Components/TransformComponent.hpp"
 
-#ifdef VELIX_USE_PHYSX
+#if VELIX_USE_PHYSX
     struct UserErrorCallback final : physx::PxErrorCallback
     {
         void reportError(physx::PxErrorCode::Enum code, const char* message, const char* file, const int line) override
@@ -16,7 +16,7 @@
 
 void physics::PhysicsController::init()
 {
-#ifdef VELIX_USE_PHYSX
+#if VELIX_USE_PHYSX
     m_foundation = PxCreateFoundation(PX_PHYSICS_VERSION, m_defaultAllocator, gErrorCallback);
     m_pvd = PxCreatePvd(*m_foundation);
 
@@ -43,7 +43,7 @@ physics::PhysicsController& physics::PhysicsController::instance()
 
 void physics::PhysicsController::simulate(float deltaTime)
 {
-#ifdef VELIX_USE_PHYSX
+#if VELIX_USE_PHYSX
     if (!m_scene)
         return;
 
@@ -55,7 +55,7 @@ void physics::PhysicsController::simulate(float deltaTime)
 
 void physics::PhysicsController::release()
 {
-#ifdef VELIX_USE_PHYSX
+#if VELIX_USE_PHYSX
     if (m_scene)
         m_scene->release();
     if (m_physics)
@@ -66,7 +66,7 @@ void physics::PhysicsController::release()
 #endif //VELIX_USE_PHYSX
 }
 
-#ifdef VELIX_USE_PHYSX
+#if VELIX_USE_PHYSX
     physx::PxControllerManager* physics::PhysicsController::getControllerManager() const
     {
         return m_controllerManager;
@@ -83,7 +83,7 @@ void physics::PhysicsController::release()
     }
 #endif
 
-#ifdef VELIX_USE_PHYSX
+#if VELIX_USE_PHYSX
 physx::PxRigidDynamic* physics::PhysicsController::addDynamicActor(std::shared_ptr<elix::GameObject> actor) const
 {
     if (!m_physics)
@@ -150,7 +150,7 @@ physx::PxRigidDynamic* physics::PhysicsController::addDynamicActor(std::shared_p
 }
 #endif //VELIX_USE_PHYSX
 
-#ifdef VELIX_USE_PHYSX
+#if VELIX_USE_PHYSX
 
 physx::PxRigidStatic * physics::PhysicsController::addStaticActor(std::shared_ptr<elix::GameObject> actor) const
 {
@@ -218,7 +218,7 @@ physx::PxRigidStatic * physics::PhysicsController::addStaticActor(std::shared_pt
 
 void physics::PhysicsController::resizeCollider(const glm::vec3 &newSize, std::shared_ptr<elix::GameObject> collider)
 {
-#ifdef VELIX_USE_PHYSX
+#if VELIX_USE_PHYSX
     //TODO: Check if actor is in the scene
     const auto rigidBody = collider->getComponent<elix::components::RigidbodyComponent>();
 

@@ -54,14 +54,14 @@ if(VELIX_USE_PHYSX)
 
         if(WIN32)
             execute_process(
-                COMMAND ${CMAKE_SOURCE_DIR}/scripts/build_physx_windows.bat
-                WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+                COMMAND ${CMAKE_CURRENT_LIST_DIR}/../scripts/build_physx_windows.bat
+                WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/..
                 RESULT_VARIABLE PHYSX_BUILD_RESULT
             )
         elseif(UNIX)
             execute_process(
-                COMMAND bash ${CMAKE_SOURCE_DIR}/scripts/build_physx_linux.sh
-                WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+                COMMAND bash ${CMAKE_CURRENT_LIST_DIR}/../scripts/build_physx_linux.sh
+                WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/..
                 RESULT_VARIABLE PHYSX_BUILD_RESULT
             )
         endif()
