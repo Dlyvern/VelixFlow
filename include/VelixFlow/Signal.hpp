@@ -5,6 +5,7 @@
 #include <functional>
 #include <memory>
 #include <vector>
+#include <algorithm>
 
 ELIX_NAMESPACE_BEGIN
 

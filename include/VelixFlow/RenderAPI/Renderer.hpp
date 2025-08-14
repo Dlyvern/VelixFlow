@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <memory>
+#include <algorithm>
 
 #include "VelixFlow/Components/CameraComponent.hpp"
 #include "VelixFlow/DefaultMacros.hpp"
