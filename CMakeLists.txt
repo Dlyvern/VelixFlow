@@ -126,7 +126,7 @@ if(WIN32)
     target_link_libraries(${PROJECT_NAME} PUBLIC
 #            ${LIBZ_ROOT}/lib/windows/zlib.lib
             ${GLFW_ROOT}/lib/windows/glfw3.lib
-            ${FMOD_ROOT}/lib/windows/fmod.dll
+            ${FMOD_ROOT}/lib/windows/fmod_vc.lib
             assimp
             ${FREETYPE_ROOT}/lib/windows/freetype.lib
             Threads::Threads
