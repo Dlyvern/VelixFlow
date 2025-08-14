@@ -5,6 +5,7 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include <cstdint>
 
 ELIX_NAMESPACE_BEGIN
 

@@ -8,6 +8,7 @@
 
 #include <vector>
 #include <string>
+#include <algorithm>
 
 ELIX_NAMESPACE_BEGIN
 

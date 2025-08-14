@@ -1,5 +1,6 @@
 #include "VelixFlow/Scene.hpp"
 #include <fstream>
+#include <algorithm>
 #include <json/json.hpp>
 #include "VelixFlow/Components/AnimatorComponent.hpp"
 #include "VelixFlow/Light.hpp"
