@@ -204,13 +204,14 @@ if(UNIX)
     install(CODE "execute_process(COMMAND ln -sf libfmod.so.14.8 \${CMAKE_INSTALL_PREFIX}/lib/libfmod.so.14)")
 endif()
 
-if(APPLE)
-    install(FILES ${FMOD_ROOT}/lib/macos/libfmod.dylib DESTINATION lib)
-endif()
+#TODO fix it
+# if(APPLE)
+#     install(FILES ${FMOD_ROOT}/lib/macos/libfmod.dylib DESTINATION lib)
+# endif()
 
-if(WIN32)
-    install(FILES ${FMOD_ROOT}/lib/windows/fmod.dll DESTINATION bin)
-endif()
+# if(WIN32)
+#     install(FILES ${FMOD_ROOT}/lib/windows/fmod.dll DESTINATION bin)
+# endif()
 
 install(EXPORT VelixFlowTargets
         FILE VelixFlowTargets.cmake
