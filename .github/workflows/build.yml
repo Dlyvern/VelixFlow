@@ -113,7 +113,7 @@ jobs:
 
       - name: Configure and Build
         run: |
-          cmake -S . -B build -G Ninja -DVELIX_USE_PHYSX=OFF -DPHYSX_BUILD_TYPE=checked -DVELIX_USE_VULKAN=OFF -DVELIX_USE_OPENGL=ON
+          cmake -S . -B build -G Ninja -DVELIX_USE_PHYSX=OFF -DCMAKE_BUILD_TYPE=Debug -DVELIX_USE_VULKAN=OFF -DVELIX_USE_OPENGL=ON
           cmake --build build --config Debug
 
       - name: Install to Staging Dir

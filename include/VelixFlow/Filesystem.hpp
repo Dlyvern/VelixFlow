@@ -17,6 +17,7 @@
 #elif defined(__APPLE__)
     #include <mach-o/dyld.h>
     #include <sys/types.h>
+    #include <unistd.h>
     #include <pwd.h>
 #endif
 
@@ -33,13 +34,10 @@ namespace filesystem
             if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_PROFILE, NULL, 0, path)))
                 homeDir = path;
             else
-                const char* userProfile = getenv("USERPROFILE");
-                if (userProfile)
+                if (const char* userProfile = getenv("USERPROFILE"))
                     homeDir = userProfile;
         #else
-            const char* homeEnv = getenv("HOME");
-
-            if (homeEnv)
+            if (const char* homeEnv = getenv("HOME"))
                 homeDir = homeEnv; 
             else 
             {

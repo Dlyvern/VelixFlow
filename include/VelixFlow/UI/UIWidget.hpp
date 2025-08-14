@@ -89,51 +89,51 @@ namespace ui
 
         virtual void handleMouseInput()
         {
-            if(!m_resizable)
-                return;
+            // if(!m_resizable)
+            //     return;
 
-            glm::vec2 mousePos{input::Mouse.getX(), input::Mouse.getY()};
-            glm::vec2 widgetMin = getPosition();
-            glm::vec2 widgetMax = getPosition() + getSize();
+            // glm::vec2 mousePos{input::Mouse.getX(), input::Mouse.getY()};
+            // glm::vec2 widgetMin = getPosition();
+            // glm::vec2 widgetMax = getPosition() + getSize();
 
-            bool onRight = fabs(mousePos.x - widgetMax.x) <= m_resizeBorder;
-            bool onBottom = fabs(mousePos.y - widgetMax.y) <= m_resizeBorder;
+            // bool onRight = fabs(mousePos.x - widgetMax.x) <= m_resizeBorder;
+            // bool onBottom = fabs(mousePos.y - widgetMax.y) <= m_resizeBorder;
 
-            // Hover logic: change cursor
-            // if (onRight && onBottom) {
-            //     setMouseCursor(MouseCursor::ResizeDiagonal);
-            // } else if (onRight) {
-            //     setMouseCursor(MouseCursor::ResizeHorizontal);
-            // } else if (onBottom) {
-            //     setMouseCursor(MouseCursor::ResizeVertical);
+            // // Hover logic: change cursor
+            // // if (onRight && onBottom) {
+            // //     setMouseCursor(MouseCursor::ResizeDiagonal);
+            // // } else if (onRight) {
+            // //     setMouseCursor(MouseCursor::ResizeHorizontal);
+            // // } else if (onBottom) {
+            // //     setMouseCursor(MouseCursor::ResizeVertical);
+            // // }
+
+            // // Mouse press start
+            // if (input::Mouse.isLeftButtonPressed() && (onRight || onBottom) && !m_isResizing) {
+            //     m_isResizing = true;
+            //     m_resizeStartMouse = mousePos;
+            //     m_resizeStartSize = getSize();
             // }
 
-            // Mouse press start
-            if (input::Mouse.isLeftButtonPressed() && (onRight || onBottom) && !m_isResizing) {
-                m_isResizing = true;
-                m_resizeStartMouse = mousePos;
-                m_resizeStartSize = getSize();
-            }
+            // if (m_isResizing && input::Mouse.isLeftButtonPressed()) 
+            // {
+            //     glm::vec2 delta = mousePos - m_resizeStartMouse;
 
-            if (m_isResizing && input::Mouse.isLeftButtonPressed()) 
-            {
-                glm::vec2 delta = mousePos - m_resizeStartMouse;
+            //     glm::vec2 newSize = getSize();
 
-                glm::vec2 newSize = getSize();
-
-                if (onRight)
-                    newSize.x = m_resizeStartSize.x + delta.x;
+            //     if (onRight)
+            //         newSize.x = m_resizeStartSize.x + delta.x;
                 
-                if (onBottom)
-                    newSize.y = m_resizeStartSize.y + delta.y;
+            //     if (onBottom)
+            //         newSize.y = m_resizeStartSize.y + delta.y;
 
-                newSize = glm::max(newSize, glm::vec2(10.0f));
+            //     newSize = glm::max(newSize, glm::vec2(10.0f));
 
-                setSize(newSize);
-            }
+            //     setSize(newSize);
+            // }
 
-            if (!input::Mouse.isLeftButtonReleased())
-                m_isResizing = false;
+            // if (!input::Mouse.isLeftButtonReleased())
+            //     m_isResizing = false;
         }
 
     private:
