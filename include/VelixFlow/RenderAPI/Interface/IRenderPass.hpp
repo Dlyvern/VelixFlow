@@ -28,7 +28,6 @@ namespace render
     class IRenderPass
     {
     public:
-        virtual window::ClearFlag getClearFlag() {return window::ClearFlag::NONE; }
         virtual bool shouldExecute() const = 0;
         virtual std::string getName() const = 0;
         virtual void render(const FrameData& frameData, Scene* scene = nullptr) = 0;

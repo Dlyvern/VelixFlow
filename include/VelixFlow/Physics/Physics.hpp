@@ -3,12 +3,12 @@
 
 #include <memory>
 
-#include "PxConfig.h"
-
-#include "PxPhysicsAPI.h"
+#ifdef VELIX_USE_PHYSX
+    #include "PxConfig.h"
+    #include "PxPhysicsAPI.h"
+#endif
 
 #include "VelixFlow/GameObject.hpp"
-#include "VelixFlow/Skeleton.hpp"
 
 //TODO Make clear PxScene in different Scenes
 namespace physics
@@ -19,15 +19,17 @@ namespace physics
         void init();
         static PhysicsController& instance();
         void simulate(float deltaTime);
-        [[nodiscard]] physx::PxRigidDynamic* addDynamicActor(std::shared_ptr<elix::GameObject> actor) const;
-        physx::PxRigidStatic* addStaticActor(std::shared_ptr<elix::GameObject> actor);
         void resizeCollider(const glm::vec3& newSize, std::shared_ptr<elix::GameObject> collider);
 
         void release();
 
+    #ifdef VELIX_USE_PHYSX
+        [[nodiscard]] physx::PxRigidDynamic* addDynamicActor(std::shared_ptr<elix::GameObject> actor) const;
+        [[nodiscard]] physx::PxRigidStatic* addStaticActor(std::shared_ptr<elix::GameObject> actor) const;
         [[nodiscard]] physx::PxControllerManager* getControllerManager() const;
         [[nodiscard]] physx::PxMaterial* getDefaultMaterial() const;
         [[nodiscard]] physx::PxScene* getScene() const;
+    #endif
     private:
     #ifdef VELIX_USE_PHYSX
         physx::PxPhysics* m_physics{nullptr};

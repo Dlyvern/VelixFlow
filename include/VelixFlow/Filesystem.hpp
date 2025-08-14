@@ -8,16 +8,59 @@
 
 #if defined(_WIN32)
     #include <windows.h>
+    #include <shlobj.h>
 #elif defined(__linux__)
     #include <unistd.h>
+    #include <sys/types.h>
+    #include <pwd.h>
 #elif defined(__APPLE__)
     #include <mach-o/dyld.h>
+    #include <sys/types.h>
+    #include <pwd.h>
 #endif
 
 ELIX_NAMESPACE_BEGIN
 
 namespace filesystem
 {
+    inline std::string getHomeDirectory()
+    {
+        std::string homeDir;
+
+        #ifdef _WIN32
+            char path[MAX_PATH];
+            if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_PROFILE, NULL, 0, path)))
+                homeDir = path;
+            else
+                const char* userProfile = getenv("USERPROFILE");
+                if (userProfile)
+                    homeDir = userProfile;
+        #else
+            const char* homeEnv = getenv("HOME");
+
+            if (homeEnv)
+                homeDir = homeEnv; 
+            else 
+            {
+                struct passwd* pw = getpwuid(getuid());
+
+                if (pw)
+                    homeDir = pw->pw_dir;
+            }
+        #endif
+
+        if (!homeDir.empty() && homeDir.back() != '/' && homeDir.back() != '\\') 
+        {
+            #ifdef _WIN32
+                homeDir += '\\';
+            #else
+                homeDir += '/';
+            #endif
+        }
+
+        return homeDir;
+    }
+
     //TODO maybe make this better....
     //TODO Wrap this inside try-catch?
     inline std::pair<int, std::string> executeCommand(const std::string& command)
@@ -84,23 +127,9 @@ namespace filesystem
         executeCommand(cmd);
     }
 
-
     inline std::filesystem::path getCurrentWorkingDirectory()
     {
         return std::filesystem::current_path();
-    }
-
-    inline std::filesystem::path getResourcesFolderPath()
-    {
-        std::string path = getCurrentWorkingDirectory().string();
-
-        const size_t position = path.find_last_of('/');
-
-        path = path.substr(0, position);
-
-        path += "/resources";
-
-        return {path};
     }
 }
 

@@ -5,7 +5,7 @@
 // #include "VelixFlow/Skybox.hpp"
 #include "VelixFlow/AssetsCache.hpp"
 #include "VelixFlow/Light.hpp"
-#include "VelixFlow/UI/UIElement.hpp"
+#include "VelixFlow/UI/UIWidget.hpp"
 #include "VelixFlow/DefaultMacros.hpp"
 
 ELIX_NAMESPACE_BEGIN
@@ -15,9 +15,13 @@ class Scene
 public:
     void update(float deltaTime);
 
-    void addUIElement(const std::shared_ptr<ui::UIElement>& uiElement);
+    void addUIElement(const std::shared_ptr<ui::UIWidget>& uiWidget);
 
-    const std::vector<std::shared_ptr<ui::UIElement>> getUIElements() const;
+    const std::vector<std::shared_ptr<ui::UIWidget>> getUIElements() const;
+
+    void deleteUIElement(const std::shared_ptr<ui::UIWidget>& uiWidget);
+
+    void deleteAllUIElements();
 
     // void setSkybox(const std::shared_ptr<Skybox>& skybox);
 
@@ -38,7 +42,7 @@ public:
     void saveSceneToFile(const std::string& filePath);
     void loadSceneFromFile(const std::string& filePath, AssetsCache& cache);
 private:
-    std::vector<std::shared_ptr<ui::UIElement>> m_uiElements;
+    std::vector<std::shared_ptr<ui::UIWidget>> m_uiElements;
     std::vector<std::shared_ptr<lighting::Light>> m_lights;   
     std::vector<std::shared_ptr<GameObject>> m_objects;
     // std::shared_ptr<Skybox> m_skybox;

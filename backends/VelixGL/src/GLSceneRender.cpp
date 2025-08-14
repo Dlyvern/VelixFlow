@@ -32,14 +32,7 @@ namespace render
 
         glEnable(GL_DEPTH_TEST);
 
-        window::ClearFlag flags = getClearFlag();
-
-        GLbitfield mask = 0;
-        if (flags & window::ClearFlag::COLOR_BUFFER_BIT)   mask |= GL_COLOR_BUFFER_BIT;
-        if (flags & window::ClearFlag::DEPTH_BUFFER_BIT)   mask |= GL_DEPTH_BUFFER_BIT;
-        if (flags & window::ClearFlag::STENCIL_BUFFER_BIT) mask |= GL_STENCIL_BUFFER_BIT;
-
-        glClear(mask);
+        glViewport(0, 0, frameData.screenPosition.x, frameData.screenPosition.y);
 
         const auto& gameObjects = scene->getGameObjects();
 
@@ -153,11 +146,6 @@ namespace render
     int GLSceneRender::getPriority() const
     {
         return 1;
-    }
-
-    window::ClearFlag GLSceneRender::getClearFlag()
-    {
-        return window::ClearFlag::COLOR_BUFFER_BIT | window::ClearFlag::DEPTH_BUFFER_BIT | window::ClearFlag::STENCIL_BUFFER_BIT;
     }
 
     void GLSceneRender::setSelectedGameObject(GameObject* gameObject)

@@ -1,64 +1,34 @@
-#ifndef TEXT_HPP
-#define TEXT_HPP
+#ifndef UI_TEXT_HPP
+#define UI_TEXT_HPP
 
-#include "ft2build.h"
-#include FT_FREETYPE_H
-
-#include <glm/vec3.hpp>
-#include <glm/mat4x4.hpp>
-#include <glm/vec2.hpp>
-#include <unordered_map>
-
+#include "VelixFlow/DefaultMacros.hpp"
+#include "VelixFlow/UI/UIWidget.hpp" 
+#include "VelixFlow/UI/UIFont.hpp"
 
 #include <string>
-
-#include "UIElement.hpp"
-#include "VelixFlow/DefaultMacros.hpp"
 
 ELIX_NAMESPACE_BEGIN
 
 namespace ui
 {
-    class UIText : public UIElement
+    class UIText : public UIWidget
     {
     public:
-        UIText();
-
-        void setFont(const std::string& pathToFont);
+        void setFont(const std::shared_ptr<UIFont>& font);
         void setText(const std::string& text);
-
-        void draw(const glm::mat4& projection, const glm::mat4& flippedProjection) override;
-
         void setScale(float scale);
 
-        ~UIText();
-
+        float getScale() const;
+        const std::string& getText() const;
+        std::shared_ptr<UIFont> getFont();
     private:
-
-        struct Character
-        {
-            unsigned int TextureID;
-            glm::ivec2   Size;
-            glm::ivec2   Bearing;
-            unsigned int Advance;
-        };
-
-        std::unordered_map<char, Character> m_characters;
-
-        FT_Library m_ftLibrary;
-
-        std::string m_fontPath;
-
         std::string m_text;
-
+        glm::vec3 m_color{1.0f};
         float m_scale{1.0f};
-
-        unsigned int m_vao;
-        unsigned int m_vbo;
+        std::shared_ptr<UIFont> m_font{nullptr};
     };
-
 } //namespace ui
 
 ELIX_NAMESPACE_END
 
-#endif //TEXT_HPP
+#endif //UI_TEXT_HPP

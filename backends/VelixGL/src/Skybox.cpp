@@ -166,15 +166,7 @@ void elix::Skybox::loadFromHDR(const std::string &path)
         convertShader->setMat4("view", captureViews[i]);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, m_cubeMapTextureId, 0);
 
-        window::ClearFlag flags = window::ClearFlag::COLOR_BUFFER_BIT | window::ClearFlag::DEPTH_BUFFER_BIT;
-
-        GLbitfield mask = 0;
-        if (flags & window::ClearFlag::COLOR_BUFFER_BIT)   mask |= GL_COLOR_BUFFER_BIT;
-        if (flags & window::ClearFlag::DEPTH_BUFFER_BIT)   mask |= GL_DEPTH_BUFFER_BIT;
-        if (flags & window::ClearFlag::STENCIL_BUFFER_BIT) mask |= GL_STENCIL_BUFFER_BIT;
-
-        glClear(mask);
-
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         m_vertexArray.bind();
         elix::DrawCall::drawArrays(elix::DrawCall::DrawMode::TRIANGLES, 0, 36);

@@ -33,7 +33,7 @@ bool Image::load(const std::string& pathToImage, bool flip)
     }
     else
     {
-        m_data = stbi_load(pathToImage.data(), &m_width, &m_height, &m_numberOfChannels, 0);
+        m_data = stbi_load(pathToImage.data(), &m_width, &m_height, &m_numberOfChannels, STBI_rgb_alpha);
 
         if(!m_data)
         {
@@ -123,7 +123,7 @@ void Image::setSecondFormat(texture::TextureFormat format)
 
 Image::~Image()
 {
-    free();
+    // free();
 }
 
 ELIX_NAMESPACE_END

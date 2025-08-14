@@ -11,7 +11,6 @@ namespace render
     class GLSceneRender : public IRenderPass
     {
     public:
-        window::ClearFlag getClearFlag() override;
         void setSelectedGameObject(GameObject* gameObject);
         void setWindow(window::Window* window);
         bool shouldExecute() const override;

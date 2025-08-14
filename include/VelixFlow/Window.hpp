@@ -21,23 +21,6 @@ namespace window
         WindowMode windowMode;
     };
 
-    enum class ClearFlag : uint8_t
-    {
-        COLOR_BUFFER_BIT = 1 << 0,
-        DEPTH_BUFFER_BIT = 1 << 1,
-        STENCIL_BUFFER_BIT = 1 << 2,
-        NONE = 0 << 0
-    };
-
-    inline ClearFlag operator|(ClearFlag a, ClearFlag b) {
-        return static_cast<ClearFlag>(
-            static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
-    }
-
-    inline bool operator&(ClearFlag a, ClearFlag b) {
-        return static_cast<uint8_t>(a) & static_cast<uint8_t>(b);
-    }
-
     constexpr WindowData FULLSCREEN_WINDOW_DATA{1920, 1080, WindowMode::FULLSCREEN};
     constexpr WindowData WINDOWED_WINDOW_DATA{800, 600, WindowMode::WINDOWED};
 

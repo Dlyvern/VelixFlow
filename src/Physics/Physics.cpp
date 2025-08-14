@@ -1,20 +1,18 @@
-#ifndef VELIX_USE_PHYSX
-    #pragma message("PhysX is disabled, skipping Physics.cpp")
-#else
-
 #include "VelixFlow/Physics/Physics.hpp"
 #include <iostream>
 #include "VelixFlow/Components/RigidbodyComponent.hpp"
 #include "VelixFlow/Logger.hpp"
 #include "VelixFlow/Components/TransformComponent.hpp"
 
-struct UserErrorCallback final : physx::PxErrorCallback
-{
-     void reportError(physx::PxErrorCode::Enum code, const char* message, const char* file, const int line) override
-     {
-         std::cout << file << " line " << line << ": " << message << "\n" << "\n";
-     }
-} gErrorCallback;
+#ifdef VELIX_USE_PHYSX
+    struct UserErrorCallback final : physx::PxErrorCallback
+    {
+        void reportError(physx::PxErrorCode::Enum code, const char* message, const char* file, const int line) override
+        {
+            std::cout << file << " line " << line << ": " << message << "\n" << "\n";
+        }
+    } gErrorCallback;
+#endif
 
 void physics::PhysicsController::init()
 {
@@ -68,36 +66,26 @@ void physics::PhysicsController::release()
 #endif //VELIX_USE_PHYSX
 }
 
-physx::PxControllerManager* physics::PhysicsController::getControllerManager() const
-{
 #ifdef VELIX_USE_PHYSX
-    return m_controllerManager;
-#else
-    return nullptr;
-#endif
-}
+    physx::PxControllerManager* physics::PhysicsController::getControllerManager() const
+    {
+        return m_controllerManager;
+    }
 
-physx::PxMaterial* physics::PhysicsController::getDefaultMaterial() const
-{
+    physx::PxMaterial* physics::PhysicsController::getDefaultMaterial() const
+    {
+        return m_defaultMaterial;
+    }
+
+    physx::PxScene* physics::PhysicsController::getScene() const
+    {
+        return m_scene;
+    }
+#endif
+
 #ifdef VELIX_USE_PHYSX
-    return m_defaultMaterial;
-#else
-    return nullptr;
-#endif
-}
-
-physx::PxScene* physics::PhysicsController::getScene() const
-{
-#ifdef VELIX_USE_PHYSX
-    return m_scene;
-#else
-    return nullptr;
-#endif
-}
-
 physx::PxRigidDynamic* physics::PhysicsController::addDynamicActor(std::shared_ptr<elix::GameObject> actor) const
 {
-#ifdef VELIX_USE_PHYSX
     if (!m_physics)
     {
         ELIX_LOG_ERROR("Physics is not initialized");
@@ -159,17 +147,13 @@ physx::PxRigidDynamic* physics::PhysicsController::addDynamicActor(std::shared_p
     m_scene->addActor(*rigidBody);
 
     return rigidBody;
-
-#else
-    ELIX_LOG_ERROR("Physics disabled: addDynamicActor returns nullptr");
-    return nullptr;
-
-#endif //VELIX_USE_PHYSX
 }
+#endif //VELIX_USE_PHYSX
 
-physx::PxRigidStatic * physics::PhysicsController::addStaticActor(std::shared_ptr<elix::GameObject> actor)
-{
 #ifdef VELIX_USE_PHYSX
+
+physx::PxRigidStatic * physics::PhysicsController::addStaticActor(std::shared_ptr<elix::GameObject> actor) const
+{
     if (!m_physics)
     {
         std::cerr << "physics::PhysicsController::addDynamicActor(): physics is not initialized" << std::endl;
@@ -229,18 +213,13 @@ physx::PxRigidStatic * physics::PhysicsController::addStaticActor(std::shared_pt
     m_scene->addActor(*staticBody);
 
     return staticBody;
-
-#else
-    ELIX_LOG_ERROR("Physics disabled: addStaticActor returns nullptr");
-    return nullptr;
-#endif
 }
+#endif
 
 void physics::PhysicsController::resizeCollider(const glm::vec3 &newSize, std::shared_ptr<elix::GameObject> collider)
 {
 #ifdef VELIX_USE_PHYSX
     //TODO: Check if actor is in the scene
-
     const auto rigidBody = collider->getComponent<elix::components::RigidbodyComponent>();
 
     if (!rigidBody)
@@ -276,4 +255,3 @@ void physics::PhysicsController::resizeCollider(const glm::vec3 &newSize, std::s
     ELIX_LOG_ERROR("Physics disabled: resizeCollider does nothing");
 #endif //VELIX_USE_PHYSX
 }
-#endif

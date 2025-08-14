@@ -9,7 +9,6 @@
 #include "VelixFlow/Components/RigidbodyComponent.hpp"
 #include "VelixFlow/Components/ScriptComponent.hpp"
 #include "VelixFlow/Scripting/ScriptSystem.hpp"
-// #include "VelixFlow/RenderAPI/OpenGL/GLTexture.hpp"
 #include "VelixFlow/Components/TransformComponent.hpp"
 
 ELIX_NAMESPACE_BEGIN
@@ -23,12 +22,12 @@ void Scene::update(float deltaTime)
         uiElement->update(deltaTime);
 }
 
-void Scene::addUIElement(const std::shared_ptr<ui::UIElement>& uiElement)
+void Scene::addUIElement(const std::shared_ptr<ui::UIWidget>& uiElement)
 {
     m_uiElements.push_back(uiElement);
 }
 
-const std::vector<std::shared_ptr<ui::UIElement>> Scene::getUIElements() const
+const std::vector<std::shared_ptr<ui::UIWidget>> Scene::getUIElements() const
 {
     return m_uiElements;
 }
@@ -62,6 +61,19 @@ void Scene::addGameObject(const std::shared_ptr<GameObject>& gameObject)
 void Scene::setGameObjects(const std::vector<std::shared_ptr<GameObject>> &gameObjects)
 {
     m_objects = gameObjects;
+}
+
+void Scene::deleteUIElement(const std::shared_ptr<ui::UIWidget>& uiWidget)
+{
+    if(!uiWidget)
+        return;
+
+    
+}
+
+void Scene::deleteAllUIElements()
+{
+    m_uiElements.clear();
 }
 
 bool Scene::deleteGameObject(GameObject *gameObject)
@@ -218,7 +230,7 @@ void Scene::saveSceneToFile(const std::string &filePath)
         file.close();
     }
     else
-        ELIX_LOG_ERROR("Scene::saveObjectsIntoFile(): Could not open file to save game objects: ", filePath);
+        ELIX_LOG_ERROR("Failed to open file to save game objects: ", filePath);
 }
 
 void Scene::loadSceneFromFile(const std::string &filePath, AssetsCache& cache)
@@ -227,7 +239,7 @@ void Scene::loadSceneFromFile(const std::string &filePath, AssetsCache& cache)
 
     if (!file.is_open())
     {
-        ELIX_LOG_ERROR("Scene::loadObjectsFromFile(): Could not open file: %s", filePath);
+        ELIX_LOG_ERROR("Failed to open file: %s", filePath);
         return;
     }
 
@@ -286,7 +298,7 @@ void Scene::loadSceneFromFile(const std::string &filePath, AssetsCache& cache)
 
                             if (materialName.empty())
                             {
-                                ELIX_LOG_WARN("Could not find material in json with given %s", indexStr.c_str());
+                                ELIX_LOG_WARN("Failed to find material in json with given %s", indexStr.c_str());
                                 continue;
                             }
 
@@ -296,15 +308,15 @@ void Scene::loadSceneFromFile(const std::string &filePath, AssetsCache& cache)
                                     component->setMaterialOverride(i, material->getMaterial());
                             }
                             else
-                                ELIX_LOG_WARN("Could not find material %s", materialName.c_str());
+                                ELIX_LOG_WARN("Failed to find material %s", materialName.c_str());
                         }
                     }
                 }
                 else
-                    ELIX_LOG_ERROR("Could not attach mesh component because missing the model %s", modelName.c_str());
+                    ELIX_LOG_ERROR("Failed to attach mesh component because missing the model %s", modelName.c_str());
             }
             else
-                ELIX_LOG_WARN("Could not find model in .json. Is this okay?....");
+                ELIX_LOG_WARN("Failed to find model in .json. Is this okay?....");
 
             auto* transformation = gameObject->addComponent<components::TransformComponent>();
 
@@ -369,7 +381,7 @@ void Scene::loadSceneFromFile(const std::string &filePath, AssetsCache& cache)
                                 auto script = scripting::ScriptSystem::createScript(scriptEntry.get<std::string>());
 
                                 if(!script)
-                                    ELIX_LOG_ERROR("Could not create script ", scriptEntry.get<std::string>());
+                                    ELIX_LOG_ERROR("Failed to create script ", scriptEntry.get<std::string>());
                                 else
                                     scriptComponent->addScript(script);
                             }
@@ -385,11 +397,11 @@ void Scene::loadSceneFromFile(const std::string &filePath, AssetsCache& cache)
 
     if (json.contains("ui_elements"))
     {
-        std::vector<std::shared_ptr<ui::UIElement>> uiElements;
+        std::vector<std::shared_ptr<ui::UIWidget>> uiElements;
 
         for(const auto& uiElementJson : json["ui_elements"])
         {
-            auto uiElement = std::make_shared<ui::UIElement>();
+            auto uiElement = std::make_shared<ui::UIWidget>();
 
             uiElement->setName(uiElementJson.value("name", "undefined"));
 
@@ -432,7 +444,7 @@ void Scene::loadSceneFromFile(const std::string &filePath, AssetsCache& cache)
                 if(assetTexture)
                     uiElement->setTexture(assetTexture->getTexture());
                 else
-                    ELIX_LOG_WARN("Could not find ", textureName, " texture");
+                    ELIX_LOG_WARN("Failed to find ", textureName, " texture");
             }
 
             //TODO maybe use std::move

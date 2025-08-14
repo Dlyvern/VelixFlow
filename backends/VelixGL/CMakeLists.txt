@@ -100,7 +100,6 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     ${INCLUDE_DIR}
     ${CMAKE_SOURCE_DIR}/include
     ${GLAD_INCLUDE_DIR}
-    ${GLFW_ROOT}/include/
     ${GLM_ROOT}/include/
 )
 

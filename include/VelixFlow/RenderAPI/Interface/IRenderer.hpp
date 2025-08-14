@@ -29,6 +29,7 @@ public:
     virtual void setMousePositionCallback(const std::function<void(GLFWwindow* window, double x, double y)>& function, window::Window* window) = 0;
 
     virtual void renderScene(const render::FrameData& frameData, Scene* scene) = 0;
+    virtual void renderSceneWithPath(const render::FrameData& frameData, Scene* scene, const std::string& pathName) = 0;
 
     virtual IRenderContext* getContext() = 0;
 
@@ -36,7 +37,7 @@ public:
     virtual void pollEvents() = 0;
 
     //TODO Render shit(Like window or FBO)
-    virtual void addRenderPath(const std::string& name, window::Window* window) = 0;
+    virtual void addRenderPath(const std::string& name, window::Window* window, Scene* scene) = 0;
 };
 
 ELIX_NAMESPACE_END

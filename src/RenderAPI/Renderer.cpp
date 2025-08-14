@@ -54,29 +54,25 @@ namespace render
 
     void Renderer::removeRenderPath(const std::string& name)
     {
-    m_renderPasses.erase(std::remove_if(m_renderPasses.begin(), m_renderPasses.end(), [&name](const auto& renderPath) { return renderPath->getName() == name; }), m_renderPasses.end());
+        m_renderPasses.erase(std::remove_if(m_renderPasses.begin(), m_renderPasses.end(), [&name](const auto& renderPath) { return renderPath->getName() == name; }), m_renderPasses.end());
     }
 
     void Renderer::renderPath(const std::string& name, const FrameData& frameData, Scene* scene)
     {
         for(const auto& path : m_renderPasses)
-        {
             if(path->getName() == name)
                 return path->render(frameData, scene);
-            else
-                ELIX_LOG_WARN("Could not find path with ", name, " name");
-        }
+
+        ELIX_LOG_WARN("Failed to find path with ", name, " name");
     }
 
     void Renderer::renderPath(int priority, const FrameData& frameData, Scene* scene)
     {
         for(const auto& path : m_renderPasses)
-        {
             if(path->getPriority() == priority)
                 return path->render(frameData, scene);
-            else
-                ELIX_LOG_INFO("Could not find path with ", priority, " priority");
-        }
+
+        ELIX_LOG_INFO("Failed to find path with ", priority, " priority");
     }
 }
 

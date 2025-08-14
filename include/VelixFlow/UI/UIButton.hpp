@@ -2,37 +2,33 @@
 #define UI_BUTTON_HPP
 
 #include "VelixFlow/DefaultMacros.hpp"
-#include "UIElement.hpp"
-#include "UIText.hpp"
-#include <memory>
+#include "VelixFlow/UI/UIWidget.hpp"
+#include "VelixFlow/UI/UIText.hpp"
 #include "VelixFlow/Signal.hpp"
+
+#include <memory>
 
 ELIX_NAMESPACE_BEGIN
 
 namespace ui
 {
-    class UIButton : public UIElement
+    class UIButton : public UIWidget
     {
     public:
         Signal<int> onClicked;
 
         UIButton();
 
-        UIButton(const std::string& text);
+        void setText(const std::string& text);
+
+        std::shared_ptr<UIText> getText();
 
         void update(float deltaTime);
-
-        void updateLayout(const glm::vec2& screenSize) override;
-
-        void setLabel(const std::string& label);
-
-        void draw(const glm::mat4& projection, const glm::mat4& flippedProjection) override;
-
-        std::shared_ptr<UIText> getText() const;
-
     private:
-        std::shared_ptr<UIText> m_text;
         bool m_isHovered;
+        std::shared_ptr<UIText> m_text{nullptr};
+
+        void updateTextPosition();
     };
 } // namespace ui
 

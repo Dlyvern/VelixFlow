@@ -23,6 +23,9 @@ public:
     static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
     static void scrollCallback(GLFWwindow* window, double x, double y);
 
+
+    void update();
+
     [[nodiscard]] double getX() const;
     [[nodiscard]] double getY() const;
 
@@ -32,6 +35,9 @@ public:
     [[nodiscard]] bool isLeftButtonReleased();
     [[nodiscard]] bool isRightButtonReleased();
 
+    bool isLeftButtonJustPressed() const;
+    bool isRightButtonJustPressed() const;
+
     GLFWwindow *window{nullptr};
 private:
     double m_x{0.0f};
@@ -40,8 +46,10 @@ private:
     MouseButton m_heldButton{MouseButton::NONE};
     MouseButton m_prevHeldButton{MouseButton::NONE};
 
-    bool m_leftButtonPressed = false;
-    bool m_rightButtonPressed = false;
+    bool m_leftButtonPressed{false};
+    bool m_leftButtonJustPressed{false};
+    bool m_rightButtonPressed{false};
+    bool m_rightButtonJustPressed{false};
 };
 
 static MouseManager& Mouse = MouseManager::instance();

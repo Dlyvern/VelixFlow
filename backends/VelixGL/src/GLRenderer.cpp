@@ -3,6 +3,8 @@
 #include "VelixGL/ShaderManager.hpp"
 
 #include "VelixGL/GLSceneRender.hpp"
+#include "VelixGL/GLUIRender.hpp"
+#include "VelixGL/GLShadowRender.hpp"
 
 #include <unordered_map>
 
@@ -89,12 +91,20 @@ void GLRenderer::setMouseButtonCallback(const std::function<void(GLFWwindow *win
     glfwSetMouseButtonCallback(window->getGLFWWindow(), mouseCallbackButtonDispatch);
 }
 
-void GLRenderer::addRenderPath(const std::string& name, window::Window* window)
+void GLRenderer::addRenderPath(const std::string& name, window::Window* window, Scene* scene)
 {
     if(name == "GLSceneRender")
     {
         auto path = m_renderer.addRenderPath<render::GLSceneRender>();
         path->setWindow(window);
+    }
+    else if(name == "GLUIRender")
+    {
+        auto path = m_renderer.addRenderPath<render::GLUIRender>();
+    }
+    else if(name == "GLShadowRender")
+    {
+        auto path = m_renderer.addRenderPath<render::GLShadowRender>(scene->getLights());
     }
 }
 
@@ -121,7 +131,14 @@ void GLRenderer::shutdown()
 
 void GLRenderer::renderScene(const render::FrameData& frameData, Scene* scene) 
 {
+    glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
     m_renderer.renderAll(frameData, scene);
+
+}
+
+void GLRenderer::renderSceneWithPath(const render::FrameData& frameData, Scene* scene, const std::string& pathName)
+{
+    m_renderer.renderPath(pathName, frameData, scene);
 }
 
 IRenderContext* GLRenderer::getContext()

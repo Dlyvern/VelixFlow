@@ -4,11 +4,6 @@ ELIX_NAMESPACE_BEGIN
 
 namespace render
 {
-    window::ClearFlag VKSceneRender::getClearFlag()
-    {
-        return window::ClearFlag::NONE;
-    }
-
     bool VKSceneRender::shouldExecute() const
     {
         return true;

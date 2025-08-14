@@ -58,9 +58,14 @@ void VKRenderer::shutdown()
     m_context.cleanup();
 }
 
-void VKRenderer::addRenderPath(const std::string& name, window::Window* window)
+void VKRenderer::addRenderPath(const std::string& name, window::Window* window, Scene* scene)
 {
 
+}
+
+void VKRenderer::renderSceneWithPath(const render::FrameData& frameData, Scene* scene, const std::string& pathName)
+{
+    
 }
 
 const render::FrameData& VKRenderer::updateFrameData(components::CameraComponent* camera, int windowWidth, int windowHeight)

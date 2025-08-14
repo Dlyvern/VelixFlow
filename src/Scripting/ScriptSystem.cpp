@@ -24,7 +24,7 @@ namespace scripting
 
         if (!getFunction)
         {
-            ELIX_LOG_ERROR("Could not get function 'getScriptsRegister'");
+            ELIX_LOG_ERROR("Failed to get function 'getScriptsRegister'");
             return false;
         }
 

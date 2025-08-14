@@ -3,7 +3,8 @@
 
 #include "VelixFlow/DefaultMacros.hpp"
 #include "VelixFlow/RenderAPI/Interface/IRenderPass.hpp"
-#include "VelixFlow/UI/UIElement.hpp"
+#include "VelixFlow/UI/UIWidget.hpp"
+#include "VelixGL/GLFontCache.hpp"
 
 ELIX_NAMESPACE_BEGIN
 
@@ -13,7 +14,6 @@ namespace render
     {
     public:
         GLUIRender();
-        window::ClearFlag getClearFlag() override;
         bool shouldExecute() const override;
         std::string getName() const override;
         void render(const FrameData& frameData, Scene* scene = nullptr) override;
@@ -21,10 +21,16 @@ namespace render
         ~GLUIRender() override = default;
     private:
         unsigned int m_VAO, m_VBO;
-        void drawUIElements(const FrameData& frameData, ui::UIElement* element);
-        void drawTextElements(const FrameData& frameData, ui::UIElement* element);
+        void drawUIElements(const FrameData& frameData, ui::UIWidget* element);
+        void drawTextElements(const FrameData& frameData, ui::UIWidget* element);
+
+        unsigned int m_vao;
+        unsigned int m_vbo;
+
+        std::shared_ptr<GLFontCache> m_fontCache{nullptr};
     };
 }
+
 ELIX_NAMESPACE_END
 
 #endif //UI_RENDER_HPP

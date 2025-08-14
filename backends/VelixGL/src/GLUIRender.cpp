@@ -2,8 +2,23 @@
 #include "VelixGL/GLUIRender.hpp"
 #include "VelixGL/ShaderManager.hpp"
 #include "VelixFlow/Logger.hpp"
-// #include "VelixFlow/UI/UIText.hpp"
+#include "VelixFlow/UI/UIText.hpp"
 #include "VelixFlow/Scene.hpp"
+
+#include <iostream>
+
+#include <glm/ext/matrix_clip_space.hpp>
+
+#include <glm/vec3.hpp>
+#include <glm/mat4x4.hpp>
+#include <glm/vec2.hpp>
+#include <unordered_map>
+#include <glm/gtc/type_ptr.hpp>
+
+#include "VelixGL/VertexArray.hpp"
+#include "VelixGL/GLBuffer.hpp"
+
+#include "VelixGL/DrawCall.hpp"
 
 ELIX_NAMESPACE_BEGIN
 
@@ -34,12 +49,21 @@ namespace render
         glEnableVertexAttribArray(1);
         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
-    }
 
-    window::ClearFlag GLUIRender::getClearFlag()
-    {
-        return window::ClearFlag::COLOR_BUFFER_BIT | window::ClearFlag::DEPTH_BUFFER_BIT;
+
+        glGenVertexArrays(1, &m_vao);
+        glGenBuffers(1, &m_vbo);
+        glBindVertexArray(m_vao);
+        glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, nullptr, GL_DYNAMIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), nullptr);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+
+        m_fontCache = std::make_shared<GLFontCache>();
     }
 
     bool GLUIRender::shouldExecute() const
@@ -52,12 +76,10 @@ namespace render
         return "GLUIRender";
     }
 
-    void GLUIRender::drawUIElements(const FrameData& frameData, elix::ui::UIElement* element)
+    void GLUIRender::drawUIElements(const FrameData& frameData, elix::ui::UIWidget* element)
     {
-        if (!element || !element->isVisible())
+        if (!element || !element->isVisible() || dynamic_cast<ui::UIText*>(element))
             return;
-
-        // if (dynamic_cast<ui::UIText*>(element)) return;
 
         auto shader = ShaderManager::instance().getShader(ShaderManager::ShaderType::UI);
 
@@ -91,15 +113,77 @@ namespace render
             drawUIElements(frameData, child.get());
     }
 
-    void GLUIRender::drawTextElements(const FrameData& frameData, elix::ui::UIElement* element)
+    void GLUIRender::drawTextElements(const FrameData& frameData, elix::ui::UIWidget* element)
     {
         if (!element || !element->isVisible())
             return;
 
         // ELIX_LOG_INFO("Drawing ", element->getName(), " at ", element->getPosition().x, " ",  element->getPosition().y, " size: ", element->getSize().x, " ", element->getSize().y);
 
-        // if (auto* text = dynamic_cast<ui::UIText*>(element))
-        //     text->draw(frameData.uiProjection, frameData.flippedUiProjection);
+        if (auto* text = dynamic_cast<ui::UIText*>(element))
+        {
+            if (!text->getFont()) return;
+            
+            auto position = text->getPosition();
+            const auto& scale = text->getScale();
+
+            auto shader = ShaderManager::instance().getShader(ShaderManager::TEXT);
+
+            shader->bind();
+
+            shader->setVec3("textColor", glm::vec3{1.0f});
+            shader->setMat4("projection", frameData.flippedUiProjection);
+            shader->setInt("text", 0);
+
+            glActiveTexture(GL_TEXTURE0);
+            glBindVertexArray(m_vao);
+
+            for (char c : text->getText())
+            {
+                const ui::Glyph* glyph = text->getFont()->getGlyph(c);
+
+                if (!glyph)
+                {
+                    ELIX_LOG_WARN("Failed to get glyph for ", c, " character");
+                    continue;
+                }
+
+                GLuint texture = m_fontCache->getGlyphTexture(glyph);
+
+                if (texture == 0)
+                {
+                    ELIX_LOG_WARN("Failed to get texture for ", c, " character");
+                    continue;
+                }
+
+                float xpos = position.x + glyph->bearing.x * scale;
+                float ypos = position.y - (glyph->size.y - glyph->bearing.y) * scale;
+                float w = glyph->size.x * scale;
+                float h = glyph->size.y * scale;
+
+                float vertices[6][4] = {
+                    { xpos,     ypos + h,   0.0f, 0.0f },
+                    { xpos,     ypos,       0.0f, 1.0f },
+                    { xpos + w, ypos,       1.0f, 1.0f },
+
+                    { xpos,     ypos + h,   0.0f, 0.0f },
+                    { xpos + w, ypos,       1.0f, 1.0f },
+                    { xpos + w, ypos + h,   1.0f, 0.0f }
+                };
+
+                glBindTexture(GL_TEXTURE_2D, texture);
+                glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+                glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+                glDrawArrays(GL_TRIANGLES, 0, 6);
+
+                position.x += (glyph->advance >> 6) * scale;
+            }
+            
+            shader->unbind();
+
+            glBindVertexArray(0);
+            glBindTexture(GL_TEXTURE_2D, 0);
+        }
 
         for (const auto& child : element->getChildren())
             drawTextElements(frameData, child.get());
@@ -110,21 +194,9 @@ namespace render
         if(!scene)
             return;
 
-        window::ClearFlag flags = getClearFlag();
-
-        GLbitfield mask = 0;
-        if (flags & window::ClearFlag::COLOR_BUFFER_BIT)   mask |= GL_COLOR_BUFFER_BIT;
-        if (flags & window::ClearFlag::DEPTH_BUFFER_BIT)   mask |= GL_DEPTH_BUFFER_BIT;
-        if (flags & window::ClearFlag::STENCIL_BUFFER_BIT) mask |= GL_STENCIL_BUFFER_BIT;
-
-        glClear(mask);
-
         glDisable(GL_DEPTH_TEST);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        for (const auto& element : scene->getUIElements())
-            element->updateLayout(frameData.screenPosition);
 
         auto shader = ShaderManager::instance().getShader(ShaderManager::ShaderType::UI);
 

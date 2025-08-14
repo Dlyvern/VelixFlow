@@ -39,25 +39,35 @@ void input::MouseManager::mouseButtonCallback(GLFWwindow *window, int button, in
     if (button == GLFW_MOUSE_BUTTON_LEFT) {
         if (action == GLFW_PRESS) {
             Mouse.m_leftButtonPressed = true;
+            Mouse.m_leftButtonJustPressed = true; // only true the frame button is pressed
         } else if (action == GLFW_RELEASE) {
             Mouse.m_leftButtonPressed = false;
         }
-    }
-    else if (button == GLFW_MOUSE_BUTTON_RIGHT)
-    {
-        if (action == GLFW_PRESS)
-        {
-            Mouse.m_prevHeldButton = Mouse.m_heldButton;
+    } 
+    else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+        if (action == GLFW_PRESS) {
             Mouse.m_rightButtonPressed = true;
-            Mouse.m_heldButton = MouseButton::RIGHT;
-        }
-        else if (action == GLFW_RELEASE)
-        {
-            Mouse.m_prevHeldButton = Mouse.m_heldButton;
-            Mouse.m_heldButton = MouseButton::NONE;
+            Mouse.m_rightButtonJustPressed = true;
+        } else if (action == GLFW_RELEASE) {
             Mouse.m_rightButtonPressed = false;
         }
     }
+}
+
+void input::MouseManager::update()
+{
+    Mouse.m_leftButtonJustPressed = false;
+    Mouse.m_rightButtonJustPressed = false;
+}
+
+bool input::MouseManager::isLeftButtonJustPressed() const
+{
+    return m_leftButtonJustPressed;
+}
+
+bool input::MouseManager::isRightButtonJustPressed() const
+{
+    return m_rightButtonJustPressed;
 }
 
 void input::MouseManager::scrollCallback(GLFWwindow *window, double x, double y)

@@ -10,7 +10,6 @@ namespace render
 {
     class VKSceneRender : public IRenderPass
     {
-        window::ClearFlag getClearFlag() override;
         bool shouldExecute() const override;
         std::string getName() const override;
         void render(const FrameData& frameData, Scene* scene = nullptr) override;

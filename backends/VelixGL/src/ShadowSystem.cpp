@@ -8,13 +8,14 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/trigonometric.hpp>
 
+ELIX_NAMESPACE_BEGIN
 
-void elix::ShadowSystem::bindShadowPass(lighting::Light* light, unsigned int textureSlot)
+void ShadowSystem::bindShadowPass(lighting::Light* light, unsigned int textureSlot)
 {
     if(!light || !m_shadowData.contains(light->id))
     {   
-                ELIX_LOG_ERROR("Could not bind invalid light");
-                return;
+        ELIX_LOG_ERROR("Failed to bind invalid light");
+        return;
     }
 
     auto& shadowData = m_shadowData[light->id];
@@ -23,7 +24,7 @@ void elix::ShadowSystem::bindShadowPass(lighting::Light* light, unsigned int tex
     glBindTexture(GL_TEXTURE_2D, shadowData.shadowMap);
 }
 
-elix::ShadowSystem::Shadow elix::ShadowSystem::createShadowFramebuffer()
+ShadowSystem::Shadow ShadowSystem::createShadowFramebuffer()
 {
 	unsigned int fbo;
 	unsigned int textureMap;
@@ -70,7 +71,7 @@ elix::ShadowSystem::Shadow elix::ShadowSystem::createShadowFramebuffer()
     return shadow;
 }
 
-void elix::ShadowSystem::cleanup()
+void ShadowSystem::cleanup()
 {
     for (auto& [id, shadow] : m_shadowData)
     {
@@ -81,7 +82,7 @@ void elix::ShadowSystem::cleanup()
     m_shadowData.clear();
 }
 
-glm::mat4 elix::ShadowSystem::calculateSpotLightMatrix(lighting::Light* spotLight)
+glm::mat4 ShadowSystem::calculateSpotLightMatrix(lighting::Light* spotLight)
 {
     float aspectRatio{1.0f};
     float angleRadians = acos(spotLight->cutoff);
@@ -98,7 +99,7 @@ glm::mat4 elix::ShadowSystem::calculateSpotLightMatrix(lighting::Light* spotLigh
 }
 
 
-glm::mat4 elix::ShadowSystem::calculateDirectionalLightMatrix(lighting::Light* light)
+glm::mat4 ShadowSystem::calculateDirectionalLightMatrix(lighting::Light* light)
 {
 //  glm::mat4 invView = glm::inverse(viewMatrix);
 
@@ -134,12 +135,12 @@ glm::mat4 elix::ShadowSystem::calculateDirectionalLightMatrix(lighting::Light* l
     return lightMatrix;
 }
 
-const elix::ShadowSystem::Shadow& elix::ShadowSystem::getShadowData(lighting::Light* light) const
+const ShadowSystem::Shadow& ShadowSystem::getShadowData(lighting::Light* light) const
 {
     return m_shadowData.at(light->id);
 }
 
-void elix::ShadowSystem::beginShadowPass(lighting::Light* light)
+void ShadowSystem::beginShadowPass(lighting::Light* light)
 {
     if(!light || !m_shadowData.contains(light->id))
     {
@@ -158,19 +159,12 @@ void elix::ShadowSystem::beginShadowPass(lighting::Light* light)
     glEnable(GL_DEPTH_TEST);
     glCullFace(GL_FRONT);
 
-    window::ClearFlag flags = window::ClearFlag::DEPTH_BUFFER_BIT;
-
-    GLbitfield mask = 0;
-    if (flags & window::ClearFlag::COLOR_BUFFER_BIT)   mask |= GL_COLOR_BUFFER_BIT;
-    if (flags & window::ClearFlag::DEPTH_BUFFER_BIT)   mask |= GL_DEPTH_BUFFER_BIT;
-    if (flags & window::ClearFlag::STENCIL_BUFFER_BIT) mask |= GL_STENCIL_BUFFER_BIT;
-
-    glClear(mask);
+    glClear(GL_DEPTH_BUFFER_BIT);
 
     glCullFace(GL_FRONT);
 }
 
-void elix::ShadowSystem::endShadowPass()
+void ShadowSystem::endShadowPass()
 {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -178,23 +172,13 @@ void elix::ShadowSystem::endShadowPass()
 
     glCullFace(GL_BACK);
 
-    window::ClearFlag flags = window::ClearFlag::COLOR_BUFFER_BIT | window::ClearFlag::DEPTH_BUFFER_BIT;
-
-    GLbitfield mask = 0;
-    if (flags & window::ClearFlag::COLOR_BUFFER_BIT)   mask |= GL_COLOR_BUFFER_BIT;
-    if (flags & window::ClearFlag::DEPTH_BUFFER_BIT)   mask |= GL_DEPTH_BUFFER_BIT;
-    if (flags & window::ClearFlag::STENCIL_BUFFER_BIT) mask |= GL_STENCIL_BUFFER_BIT;
-
-    glClear(mask);
-
-
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-elix::ShadowSystem::Shadow elix::ShadowSystem::createShadowCubeFramebuffer()
+ShadowSystem::Shadow ShadowSystem::createShadowCubeFramebuffer()
 {
     unsigned int fbo;
     unsigned int shadowMap;
-
 
     glGenFramebuffers(1, &fbo);
     glGenTextures(1, &shadowMap);
@@ -234,20 +218,20 @@ elix::ShadowSystem::Shadow elix::ShadowSystem::createShadowCubeFramebuffer()
     return shadow;
 }
 
-int elix::ShadowSystem::getResolutionBasedOnQuality(elix::ShadowSystem::ShadowQuality quality)
+int ShadowSystem::getResolutionBasedOnQuality(ShadowSystem::ShadowQuality quality)
 {
     switch(quality)
     {
-        case elix::ShadowSystem::ShadowQuality::LOW: return 512;
-        case elix::ShadowSystem::ShadowQuality::MEDIUM: return 1024;
-        case elix::ShadowSystem::ShadowQuality::HIGH: return 2048;
-        case elix::ShadowSystem::ShadowQuality::ULTRA: return 4096;
+        case ShadowSystem::ShadowQuality::LOW: return 512;
+        case ShadowSystem::ShadowQuality::MEDIUM: return 1024;
+        case ShadowSystem::ShadowQuality::HIGH: return 2048;
+        case ShadowSystem::ShadowQuality::ULTRA: return 4096;
     }
 
     return 0;
 }
 
-glm::mat4 elix::ShadowSystem::getLightMatrix(lighting::Light* light) const
+glm::mat4 ShadowSystem::getLightMatrix(lighting::Light* light) const
 {
     if(!light || !m_shadowData.contains(light->id))
         return {};
@@ -255,7 +239,7 @@ glm::mat4 elix::ShadowSystem::getLightMatrix(lighting::Light* light) const
     return m_shadowData.at(light->id).lightMatrix;
 }
 
-void elix::ShadowSystem::updateLightMatrix(lighting::Light* light)
+void ShadowSystem::updateLightMatrix(lighting::Light* light)
 {
     if(!light)
         return;
@@ -266,7 +250,7 @@ void elix::ShadowSystem::updateLightMatrix(lighting::Light* light)
         return;
     }
 
-    elix::ShadowSystem::Shadow& shadowData = m_shadowData[light->id];
+    ShadowSystem::Shadow& shadowData = m_shadowData[light->id];
 
     if(light->type == lighting::LightType::DIRECTIONAL)
         shadowData.lightMatrix = calculateDirectionalLightMatrix(light);
@@ -274,7 +258,7 @@ void elix::ShadowSystem::updateLightMatrix(lighting::Light* light)
         shadowData.lightMatrix = calculateSpotLightMatrix(light);
 }
 
-void elix::ShadowSystem::init(const std::vector<std::shared_ptr<lighting::Light>>& lights, ShadowQuality quality)
+void ShadowSystem::init(const std::vector<std::shared_ptr<lighting::Light>>& lights, ShadowQuality quality)
 {
     m_quality = quality;
 
@@ -294,3 +278,6 @@ void elix::ShadowSystem::init(const std::vector<std::shared_ptr<lighting::Light>
 
     ELIX_LOG_INFO("Intialized shadows with ", lights.size(), " lights");
  }
+
+
+ELIX_NAMESPACE_END

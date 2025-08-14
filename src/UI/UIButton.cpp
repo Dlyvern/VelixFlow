@@ -4,65 +4,67 @@
 
 ELIX_NAMESPACE_BEGIN
 
-ui::UIButton::UIButton() = default;
-
-ui::UIButton::UIButton(const std::string& text)
+namespace ui
 {
-    m_text = std::make_shared<ui::UIText>();
-    setLabel(text);
-    m_text->setColor({1.0f, 1.0f, 1.0f, 1.0f});
-    m_text->setScale(1.0f);
-    this->addChild(m_text);
-}
-
-void ui::UIButton::setLabel(const std::string& label)
-{
-    if(!m_text)
-        return;
-
-    m_text->setText(label);
-    
-    m_text->setAnchor(UIAnchor::Center);
-}
-
-std::shared_ptr<ui::UIText> ui::UIButton::getText() const
-{
-    return m_text;
-}
-
-void ui::UIButton::update(float deltaTime)
-{
-    glm::vec2 mousePosition = {input::Mouse.getX(), input::Mouse.getY()};
-
-    glm::vec2 position = getPosition();
-    glm::vec2 size = getSize();
-
-    //TODO make AABB class for this(2d and 3d)
-    m_isHovered = mousePosition.x >= position.x && mousePosition.x <= position.x + size.x &&
-    mousePosition.y >= position.y && mousePosition.y <= position.y + size.y;
-
-    if(m_isHovered && input::Mouse.isLeftButtonPressed())
+    UIButton::UIButton()
     {
-        onClicked.emit(0);
+        this->positionChanged.connect([this](glm::vec2 position) { updateTextPosition(); });
+        this->sizeChanged.connect([this](glm::vec2 size) { updateTextPosition(); });
     }
-}
 
-void ui::UIButton::draw(const glm::mat4& projection, const glm::mat4& flippedProjection)
-{
-    this->setAlpha(m_isHovered ? 1.0f : 0.5f);
-}
-
-void ui::UIButton::updateLayout(const glm::vec2& screenSize)
-{
-    UIElement::updateLayout(screenSize);
-
-    if (m_text)
+    void UIButton::setText(const std::string& text)
     {
-        glm::vec2 pos = getPosition();
+        if(!m_text)
+        {
+            m_text = std::make_shared<UIText>();
+            addChild(m_text);
+        }
+        
+        m_text->setText(text);
+
+        updateTextPosition();
+    }
+
+    std::shared_ptr<UIText> UIButton::getText()
+    {
+        return m_text;
+    }
+
+    void UIButton::updateTextPosition()
+    {
+        if(!m_text) return;
+
+        glm::vec2 buttonPos = getPosition();
+        glm::vec2 buttonSize = getSize();
+        glm::vec2 textSize = m_text->getFont() ? m_text->getFont()->calculateTextSize(m_text->getText(), m_text->getScale()) : glm::vec2(0.0f);
+
+        glm::vec2 textPos;
+        textPos.x = buttonPos.x + (buttonSize.x - textSize.x) / 2.0f;
+        textPos.y = buttonPos.y + (buttonSize.y - textSize.y) / 2.0f;
+
+        m_text->setPosition(textPos);
+    }
+
+    void UIButton::update(float deltaTime)
+    {
+        UIWidget::update(deltaTime);
+
+        glm::vec2 mousePosition = {input::Mouse.getX(), input::Mouse.getY()};
+
+        glm::vec2 position = getPosition();
         glm::vec2 size = getSize();
-        m_text->setPosition({pos.x + size.x * 0.5f, pos.y + size.y * 0.5f});
-        m_text->setAnchor(UIAnchor::Center);
+
+        //TODO make AABB class for this(2d and 3d)
+        m_isHovered = mousePosition.x >= position.x && mousePosition.x <= position.x + size.x &&
+        mousePosition.y >= position.y && mousePosition.y <= position.y + size.y;
+
+        if(m_isHovered && input::Mouse.isLeftButtonJustPressed())
+        {
+            onClicked.emit(0);
+        }
+
+        // this->setAlpha(m_isHovered ? 1.0f : 0.5f);
     }
-}
+} //namespace ui
 
 ELIX_NAMESPACE_END
