@@ -29,13 +29,13 @@ set(INCLUDE_DIR include/VelixFlow)
 set(SRC_DIR src)
 set(LIBRARIES_DIR libraries)
 
-set(GLM_ROOT ${CMAKE_SOURCE_DIR}/external/glm)
-set(PHYSX_ROOT ${CMAKE_SOURCE_DIR}/external/physx)
-set(GLFW_ROOT ${CMAKE_SOURCE_DIR}/external/glfw)
-set(ASSIMP_ROOT ${CMAKE_SOURCE_DIR}/external/assimp)
-set(FREETYPE_ROOT ${CMAKE_SOURCE_DIR}/external/freetype)
-set(LIBZ_ROOT ${CMAKE_SOURCE_DIR}/external/libz)
-set(FMOD_ROOT ${CMAKE_SOURCE_DIR}/external/fmod)
+set(GLM_ROOT ${CMAKE_CURRENT_LIST_DIR}/external/glm)
+set(PHYSX_ROOT ${CMAKE_CURRENT_LIST_DIR}/external/physx)
+set(GLFW_ROOT ${CMAKE_CURRENT_LIST_DIR}/external/glfw)
+set(ASSIMP_ROOT ${CMAKE_CURRENT_LIST_DIR}/external/assimp)
+set(FREETYPE_ROOT ${CMAKE_CURRENT_LIST_DIR}/external/freetype)
+set(LIBZ_ROOT ${CMAKE_CURRENT_LIST_DIR}/external/libz)
+set(FMOD_ROOT ${CMAKE_CURRENT_LIST_DIR}/external/fmod)
 
 file(GLOB_RECURSE PROJECT_HEADERS ${INCLUDE_DIR}/*.h ${INCLUDE_DIR}/*.hpp)
 file(GLOB_RECURSE PROJECT_SOURCES ${SRC_DIR}/*.cpp)
@@ -117,12 +117,9 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 
         $<BUILD_INTERFACE:${ASSIMP_ROOT}/include/>
         $<INSTALL_INTERFACE:include/VelixFlow/assimp>
-)
 
-#Just to supress warnings on Macos and Windows
-target_include_directories(${PROJECT_NAME} SYSTEM PUBLIC
-    $<BUILD_INTERFACE:${GLM_ROOT}/include/>
-    $<INSTALL_INTERFACE:include/VelixFlow/glm>
+        $<BUILD_INTERFACE:${GLM_ROOT}/include/>
+        $<INSTALL_INTERFACE:include/VelixFlow/glm>
 )
 
 # === Link Libraries ===

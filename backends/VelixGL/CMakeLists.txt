@@ -28,16 +28,6 @@ if(NOT TARGET OpenGL::OpenGL)
     endif()
 endif()
 
-if(APPLE)
-    add_definitions(-DGL_SILENCE_DEPRECATION)
-
-    find_library(COCOA_LIBRARY Cocoa)
-    find_library(OPENGL_LIBRARY OpenGL)
-    find_library(IOKIT_LIBRARY IOKit)
-    find_library(COREVIDEO_LIBRARY CoreVideo)
-endif()
-
-
 add_library(glad STATIC ${GLAD_DIR}/src/glad.c)
 
 target_include_directories(glad
@@ -117,12 +107,23 @@ elseif(WIN32)
     )
 
 elseif(APPLE)
+    add_definitions(-DGL_SILENCE_DEPRECATION)
+
+    find_library(COCOA_LIBRARY Cocoa)
+    find_library(OPENGL_LIBRARY OpenGL)
+    find_library(IOKIT_LIBRARY IOKit)
+    find_library(COREVIDEO_LIBRARY CoreVideo)
+    find_library(QUARTZCORE_LIBRARY QuartzCore)
+    find_library(COREFOUNDATION_LIBRARY CoreFoundation)
+
     target_link_libraries(${PROJECT_NAME} PUBLIC 
         ${OPENGL_LIBRARY}
         glad
         ${COCOA_LIBRARY}
         ${IOKIT_LIBRARY}
         ${COREVIDEO_LIBRARY}
+        ${QUARTZCORE_LIBRARY}
+        ${COREFOUNDATION_LIBRARY}
         VelixFlow
     )
 endif()
